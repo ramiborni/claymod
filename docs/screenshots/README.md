@@ -1,6 +1,8 @@
 # Screenshots
 
-Captured from the real extension with a fake model and a synthetic page.
+Captured from the real extension with a fake model and a synthetic page. Since M7 every
+screenshot shows the current UI (layout G, "Framed sheet" look); the section names say which
+milestone added the screen.
 Regenerate with `SCREENSHOTS_DIR=$PWD/docs/screenshots bun run --cwd packages/extension screenshots`.
 
 | | Light | Dark |
