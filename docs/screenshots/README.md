@@ -27,6 +27,15 @@ Captured with the real `claymod-bridge` and a fake agent CLI.
 | Preview made by a local agent | ![](light-m4-4-panel-preview-local-agent.png) | ![](dark-m4-4-panel-preview-local-agent.png) |
 | Bridge not installed | ![](light-m4-5-bridge-missing.png) | ![](dark-m4-5-bridge-missing.png) |
 
+## On-device models (M6)
+
+Headless Chrome has no WebGPU, so these use a faked GPU (a dedicated card, then an integrated one).
+
+| | Light | Dark |
+| --- | --- | --- |
+| Dedicated GPU: 3B suggested | ![](light-m6-1-on-device-dedicated.png) | ![](dark-m6-1-on-device-dedicated.png) |
+| Integrated GPU, choosing a heavier model | ![](light-m6-2-on-device-integrated-heavy.png) | ![](dark-m6-2-on-device-integrated-heavy.png) |
+
 ## Agents over MCP (M5)
 
 Captured with a real MCP client, `claymod-bridge mcp` and the real bridge.
