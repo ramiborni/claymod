@@ -42,10 +42,11 @@ Pick one of these. Both are self-contained and reviewed quickly.
 
 ### Option B: add a model provider
 
-1. Add one file in `packages/core/src/providers/` implementing `ModelProvider` (see
-   `anthropic.ts` for a complete example), add its settings to `providers/config.ts` and register
-   it in `providers/index.ts`. Use the injected `fetch`; don't add an SDK unless there is no other
-   way. Error messages must tell the user what to do next.
+1. Add one file in `packages/core/src/providers/` that wraps a LangChain chat model
+   (`@langchain/<vendor>`) as a `ModelProvider` using `completeWithLangChain` (see `anthropic.ts`
+   for a complete example). Pass the injected `fetch` to the vendor SDK, pick a structured-output
+   method the vendor's current models accept, add the settings to `providers/config.ts` and
+   register it in `providers/index.ts`. Error messages must tell the user what to do next.
 2. Record a real response once and save it in `packages/core/tests/recordings/<provider>/`
    (see the README there). Test against it with `replayFetch` from `tests/helpers.ts`.
    Unit tests can't reach the network: `fetch` is blocked in the test setup.

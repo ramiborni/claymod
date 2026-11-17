@@ -39,12 +39,14 @@ Functions return `Result` values instead of throwing for expected failures.
 | `mod/` | Zod schema, match-pattern validation, validation helpers, JSON Schema export, versioning (repair / undo with history) |
 | `snapshot/` | Snapshot type, outline renderer (breadth-first, ~30 KB cap), byte-safe truncation |
 | `prompts/` | Create and repair prompt builders, retry feedback |
-| `providers/` | `ModelProvider` interface, `openai-compatible` and `anthropic` adapters, provider config schema, registry |
-| `generate/` | JSON extraction and `generateModDraft`: call, parse, validate, one retry with the errors |
+| `providers/` | `ModelProvider` interface wrapping LangChain chat models (`ChatOpenAICompletions`, `ChatAnthropic`), error mapping, provider config schema, registry |
+| `generate/` | LangGraph `StateGraph` (`callModel → validate → addFeedback → callModel`, at most 2 calls) behind `generateModDraft`; JSON extraction |
 | `health/` | Pure health evaluator (needs repair after 3 failed visits in a row by default) |
 
-Providers take an injected `fetch`, so they run unchanged in the service worker and the bridge,
-and tests replay recorded responses. Page snapshots are wrapped in `<page_snapshot>` and the
+Models are called through LangChain JS and orchestrated with LangGraph JS (imported from
+`@langchain/langgraph/web`, which needs no Node APIs), so the same code runs in the service worker
+and the bridge. Providers accept a `fetch` that is handed to the vendor SDK, which is how tests
+replay recorded responses. See [ADR 0003](decisions/0003-langchain-and-langgraph.md). Page snapshots are wrapped in `<page_snapshot>` and the
 system prompt tells the model to treat them as untrusted data.
 
 ### `packages/extension`

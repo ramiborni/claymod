@@ -1,6 +1,6 @@
 # 0002. Fetch-based model providers, no vendor SDKs
 
-- Status: accepted
+- Status: superseded by [0003](0003-langchain-and-langgraph.md)
 - Date: 2026-11-17
 
 ## Context

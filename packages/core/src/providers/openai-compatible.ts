@@ -1,13 +1,8 @@
-import * as z from "zod";
-import { err, ok, type Result } from "../result";
-import { type HttpFailure, isProviderError, mapHttpFailure, postJson } from "./http";
-import type {
-  Completion,
-  CompletionRequest,
-  FetchLike,
-  ModelProvider,
-  ProviderError,
-} from "./types";
+import type { AIMessage } from "@langchain/core/messages";
+import { ChatOpenAICompletions } from "@langchain/openai";
+import { completeWithLangChain, type StructuredOutputMethod } from "./complete";
+import { toProviderError } from "./errors";
+import type { ModelProvider, ProviderError, ProviderRuntime } from "./types";
 
 /**
  * How to ask for JSON. Support differs by server: "json_object" works on OpenAI, Ollama,
@@ -15,7 +10,7 @@ import type {
  */
 export type ResponseFormatMode = "json_schema" | "json_object" | "none";
 
-export interface OpenAICompatibleConfig {
+export interface OpenAICompatibleConfig extends ProviderRuntime {
   /** e.g. http://localhost:11434/v1 (Ollama), https://openrouter.ai/api/v1, https://api.openai.com/v1 */
   baseUrl: string;
   model: string;
@@ -23,107 +18,82 @@ export interface OpenAICompatibleConfig {
   responseFormat?: ResponseFormatMode | undefined;
   /** chrome-extension://<id>, used to explain Ollama's OLLAMA_ORIGINS setting. */
   extensionOrigin?: string | undefined;
-  fetch?: FetchLike | undefined;
 }
 
 const MAX_TOKENS = 16_000;
 const NAME = "The model server";
+// The OpenAI SDK requires a key; local servers such as Ollama ignore it.
+const NO_KEY = "not-needed";
 
-const responseSchema = z.object({
-  model: z.string().optional(),
-  choices: z
-    .array(
-      z.object({
-        finish_reason: z.string().nullable().optional(),
-        message: z.object({
-          content: z.string().nullable().optional(),
-          refusal: z.string().nullable().optional(),
-        }),
-      }),
-    )
-    .min(1),
-});
-
-function responseFormat(mode: ResponseFormatMode, request: CompletionRequest) {
-  if (mode === "json_object") return { response_format: { type: "json_object" } };
-  if (mode === "json_schema" && request.responseSchema) {
-    return {
-      response_format: {
-        type: "json_schema",
-        json_schema: { name: "claymod_mod", schema: request.responseSchema, strict: false },
-      },
-    };
-  }
-  return {};
-}
+const METHODS: Record<ResponseFormatMode, StructuredOutputMethod> = {
+  json_object: "jsonMode",
+  json_schema: "jsonSchema",
+  none: "none",
+};
 
 function looksLikeOllama(baseUrl: string): boolean {
   const { hostname, port } = new URL(baseUrl);
   return ["localhost", "127.0.0.1", "[::1]"].includes(hostname) && port === "11434";
 }
 
-function mapFailure(failure: HttpFailure, config: OpenAICompatibleConfig): ProviderError {
-  if (failure.status === 403 && looksLikeOllama(config.baseUrl)) {
+function mapError(error: unknown, config: OpenAICompatibleConfig): ProviderError {
+  const mapped = toProviderError(error, NAME, config.baseUrl);
+  if (mapped.status === 403 && looksLikeOllama(config.baseUrl)) {
     const origin = config.extensionOrigin ?? "chrome-extension://<extension id>";
     return {
-      kind: "forbidden",
-      status: 403,
+      ...mapped,
       message: `Ollama blocked the extension. Set OLLAMA_ORIGINS=${origin} and restart Ollama.`,
     };
   }
-  return mapHttpFailure(failure, NAME);
+  return mapped;
 }
 
-function toCompletion(body: unknown, fallbackModel: string): Result<Completion, ProviderError> {
-  const parsed = responseSchema.safeParse(body);
-  const choice = parsed.success ? parsed.data.choices[0] : undefined;
-  if (!parsed.success || !choice) {
-    return err({
-      kind: "invalid-response",
-      message: `${NAME} sent a response Claymod doesn't understand. Check that the base URL points to an OpenAI-compatible API (it usually ends in /v1).`,
-    });
-  }
-  if (choice.message.refusal) {
-    return err({
+function checkFinish(message: AIMessage): ProviderError | undefined {
+  if (message.additional_kwargs.refusal) {
+    return {
       kind: "refused",
       message: "The model declined this request. Rephrase what you want to change and try again.",
-    });
+    };
   }
-  if (choice.finish_reason === "length") {
-    return err({
+  if (message.response_metadata.finish_reason === "length") {
+    return {
       kind: "truncated",
       message:
         "The model's answer was cut off. Ask for a smaller change, or use a model with a larger output limit.",
-    });
+    };
   }
-  return ok({ text: choice.message.content ?? "", model: parsed.data.model ?? fallbackModel });
+  return undefined;
 }
 
-/** Chat Completions API: Ollama, LM Studio, OpenRouter, OpenAI and compatible servers. */
+/**
+ * Chat Completions API (Ollama, LM Studio, OpenRouter, OpenAI) via LangChain. Uses
+ * ChatOpenAICompletions, not ChatOpenAI, so requests never switch to the Responses API,
+ * which local servers don't implement.
+ */
 export function createOpenAICompatibleProvider(config: OpenAICompatibleConfig): ModelProvider {
   const baseUrl = config.baseUrl.replace(/\/+$/, "");
-  const fetchImpl: FetchLike = config.fetch ?? ((url, init) => globalThis.fetch(url, init));
-  const mode = config.responseFormat ?? "json_object";
+  const chatModel = new ChatOpenAICompletions({
+    model: config.model,
+    apiKey: config.apiKey || NO_KEY,
+    maxTokens: MAX_TOKENS,
+    maxRetries: config.maxRetries ?? 2,
+    configuration: { baseURL: baseUrl, ...(config.fetch ? { fetch: config.fetch } : {}) },
+  });
+  const method = METHODS[config.responseFormat ?? "json_object"];
   return {
     id: "openai-compatible",
     model: config.model,
-    async complete(request) {
-      const result = await postJson({
-        fetch: fetchImpl,
-        url: `${baseUrl}/chat/completions`,
-        headers: config.apiKey ? { authorization: `Bearer ${config.apiKey}` } : {},
-        body: {
-          model: config.model,
-          max_tokens: MAX_TOKENS,
-          messages: [{ role: "system", content: request.system }, ...request.messages],
-          ...responseFormat(mode, request),
+    chatModel,
+    complete: (request) =>
+      completeWithLangChain(
+        {
+          chatModel,
+          method,
+          fallbackModel: config.model,
+          checkFinish,
+          mapError: (error) => mapError(error, config),
         },
-        signal: request.signal,
-      });
-      if (!result.ok) {
-        return err(isProviderError(result.error) ? result.error : mapFailure(result.error, config));
-      }
-      return toCompletion(result.value, config.model);
-    },
+        request,
+      ),
   };
 }

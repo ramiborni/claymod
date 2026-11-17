@@ -1,11 +1,9 @@
 import { modDraftJsonSchema } from "../mod/json-schema";
 import type { ModDraft } from "../mod/schema";
-import { validateModDraft } from "../mod/validate";
-import { withRetryFeedback } from "../prompts/retry";
 import type { Prompt } from "../prompts/types";
 import type { ModelProvider, ProviderError } from "../providers/types";
 import { err, ok, type Result } from "../result";
-import { extractJson } from "./extract-json";
+import { buildGenerateGraph } from "./graph";
 
 export type GenerateError =
   | { kind: "provider"; error: ProviderError }
@@ -19,43 +17,36 @@ export interface GenerateOutput {
 }
 
 export interface GenerateInput {
-  provider: ModelProvider;
+  provider: Pick<ModelProvider, "complete">;
   prompt: Prompt;
   signal?: AbortSignal;
-}
-
-function parseDraft(text: string): Result<ModDraft, string[]> {
-  const json = extractJson(text);
-  return json.ok ? validateModDraft(json.value) : err([json.error]);
 }
 
 /** Asks the model for a mod, then retries once with the validation errors if it's invalid. */
 export async function generateModDraft(
   input: GenerateInput,
 ): Promise<Result<GenerateOutput, GenerateError>> {
-  const responseSchema = modDraftJsonSchema();
-  let prompt = input.prompt;
-  let lastAnswer = "";
-  let issues: string[] = [];
-  for (let attempt = 1; attempt <= 2; attempt++) {
-    const completion = await input.provider.complete({
-      ...prompt,
-      responseSchema,
-      ...(input.signal ? { signal: input.signal } : {}),
-    });
-    if (!completion.ok) return err({ kind: "provider", error: completion.error });
-    lastAnswer = completion.value.text;
-    const draft = parseDraft(lastAnswer);
-    if (draft.ok)
-      return ok({ draft: draft.value, model: completion.value.model, attempts: attempt });
-    issues = draft.error;
-    prompt = withRetryFeedback(input.prompt, lastAnswer || "(empty answer)", issues);
-  }
+  const graph = buildGenerateGraph(input.provider, modDraftJsonSchema());
+  const state = await graph.invoke(
+    {
+      prompt: input.prompt,
+      current: input.prompt,
+      attempts: 0,
+      lastAnswer: "",
+      model: "",
+      issues: [],
+      draft: undefined,
+      providerError: undefined,
+    },
+    input.signal ? { signal: input.signal } : {},
+  );
+  if (state.providerError) return err({ kind: "provider", error: state.providerError });
+  if (state.draft) return ok({ draft: state.draft, model: state.model, attempts: state.attempts });
   return err({
     kind: "invalid-output",
     message:
       "The model didn't produce a valid mod after two tries. Try again, rephrase the request, or pick a more capable model.",
-    issues,
-    lastAnswer,
+    issues: state.issues,
+    lastAnswer: state.lastAnswer,
   });
 }

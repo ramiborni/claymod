@@ -1,5 +1,3 @@
-import type { FetchLike } from "../src/providers/types";
-
 export interface Recording {
   status: number;
   body: unknown;
@@ -15,24 +13,36 @@ export async function loadRecording(path: string): Promise<Recording> {
   return Bun.file(new URL(`./recordings/${path}`, import.meta.url)).json();
 }
 
-/** A fetch that replays recordings in order and keeps what was sent. No network. */
-export function replayFetch(recordings: Recording[]): { fetch: FetchLike; sent: SentRequest[] } {
+function urlOf(input: string | URL | Request): string {
+  if (typeof input === "string") return input;
+  return input instanceof URL ? input.href : input.url;
+}
+
+/**
+ * A fetch for the vendor SDKs under LangChain that replays recordings in order and keeps
+ * what was sent. No network.
+ */
+export function replayFetch(recordings: Recording[]): { fetch: typeof fetch; sent: SentRequest[] } {
   const sent: SentRequest[] = [];
   const queue = [...recordings];
-  const fetch: FetchLike = async (url, init) => {
-    sent.push({ url, headers: init.headers, body: JSON.parse(init.body) });
+  const replay = async (input: string | URL | Request, init?: RequestInit) => {
+    const url = urlOf(input);
+    const headers = Object.fromEntries(new Headers(init?.headers).entries());
+    sent.push({ url, headers, body: JSON.parse(String(init?.body ?? "{}")) });
     const next = queue.shift();
     if (!next) throw new Error(`Unexpected extra request to ${url}`);
     const text = typeof next.body === "string" ? next.body : JSON.stringify(next.body);
-    return {
-      ok: next.status >= 200 && next.status < 300,
+    return new Response(text, {
       status: next.status,
-      text: async () => text,
-    };
+      headers: { "content-type": "application/json" },
+    });
   };
-  return { fetch, sent };
+  return { fetch: Object.assign(replay, { preconnect: () => undefined }) as typeof fetch, sent };
 }
 
-export const failingFetch: FetchLike = async () => {
-  throw new TypeError("Failed to fetch");
-};
+export const failingFetch = Object.assign(
+  async () => {
+    throw new TypeError("Failed to fetch");
+  },
+  { preconnect: () => undefined },
+) as typeof fetch;

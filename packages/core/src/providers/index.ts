@@ -1,11 +1,10 @@
 import { createAnthropicProvider } from "./anthropic";
 import type { ProviderConfig } from "./config";
 import { createOpenAICompatibleProvider } from "./openai-compatible";
-import type { FetchLike, ModelProvider } from "./types";
+import type { ModelProvider, ProviderRuntime } from "./types";
 
-export interface ProviderContext {
-  fetch?: FetchLike;
-  extensionOrigin?: string;
+export interface ProviderContext extends ProviderRuntime {
+  extensionOrigin?: string | undefined;
 }
 
 /** The one place providers are registered. Add new kinds here and in config.ts. */

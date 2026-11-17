@@ -31,8 +31,8 @@ Bun workspaces monorepo:
 packages/core/       Pure TypeScript. No browser or Node APIs.
                      Mod schema (Zod, single source of truth) + JSON Schema export,
                      snapshot types, prompt builders, ModelProvider interface + adapters
-                     (fetch-based), output validation with one repair retry,
-                     health-check evaluator.
+                     (LangChain JS chat models), output validation with one repair retry
+                     (LangGraph JS graph), health-check evaluator.
 packages/extension/  WXT, Manifest V3, Chrome first (Firefox later).
                      entrypoints/background  orchestration, providers, storage, userScripts sync
                      entrypoints/content     snapshot, element picker, CSS apply, checks, SPA observer
@@ -76,8 +76,8 @@ Defined in `packages/core/src/mod/schema.ts` (Zod). Do not change it without ask
 
 ## Extension points (how contributors add things)
 
-- **New model provider:** one file in `packages/core/src/providers/` implementing `ModelProvider`,
-  registered in the index, with a recorded-response test.
+- **New model provider:** one file in `packages/core/src/providers/` wrapping a LangChain chat model
+  as a `ModelProvider`, registered in the index, with a recorded-response test.
 - **New agent runner:** one file in `packages/bridge/src/runners/` implementing `AgentRunner`.
 - **New starter mod:** one JSON file in `mods/` plus a fixture-page test.
 

@@ -9,9 +9,7 @@ import { generateModDraft } from "./generate";
 /** A provider that returns scripted answers and records each request. */
 function scriptedProvider(answers: Array<string | ProviderError>) {
   const requests: CompletionRequest[] = [];
-  const provider: ModelProvider = {
-    id: "scripted",
-    model: "test-model",
+  const provider: Pick<ModelProvider, "complete"> = {
     async complete(request) {
       requests.push(request);
       const answer = answers.shift();
