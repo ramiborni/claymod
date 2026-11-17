@@ -1,0 +1,21 @@
+{
+  "status": 200,
+  "body": {
+    "id": "chatcmpl-redacted",
+    "object": "chat.completion",
+    "created": 1763337600,
+    "model": "llama3.1:8b",
+    "system_fingerprint": "fp_ollama",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "```json\n{\"name\":\"Hide promoted posts\",\"description\":\"Hides posts marked as promoted.\",\"matches\":[\"https://example.com/*\"],\"css\":\".post.promoted { display: none !important; }\",\"runAt\":\"document_start\",\"checks\":[{\"selector\":\".post\",\"expect\":\"exists\"}]}\n```"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": { "prompt_tokens": 2100, "completion_tokens": 120, "total_tokens": 2220 }
+  }
+}

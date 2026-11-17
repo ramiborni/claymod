@@ -34,6 +34,19 @@ tests alike. It owns:
 
 Functions return `Result` values instead of throwing for expected failures.
 
+| Folder | What's inside |
+| --- | --- |
+| `mod/` | Zod schema, match-pattern validation, validation helpers, JSON Schema export, versioning (repair / undo with history) |
+| `snapshot/` | Snapshot type, outline renderer (breadth-first, ~30 KB cap), byte-safe truncation |
+| `prompts/` | Create and repair prompt builders, retry feedback |
+| `providers/` | `ModelProvider` interface, `openai-compatible` and `anthropic` adapters, provider config schema, registry |
+| `generate/` | JSON extraction and `generateModDraft`: call, parse, validate, one retry with the errors |
+| `health/` | Pure health evaluator (needs repair after 3 failed visits in a row by default) |
+
+Providers take an injected `fetch`, so they run unchanged in the service worker and the bridge,
+and tests replay recorded responses. Page snapshots are wrapped in `<page_snapshot>` and the
+system prompt tells the model to treat them as untrusted data.
+
 ### `packages/extension`
 
 WXT, Manifest V3, Chrome first.

@@ -16,7 +16,7 @@ passing, and a short summary of what changed, how to try it, and what's left.
 
 **Done when:** a fresh clone passes `bun install && bun run check && bun test`, and CI is green.
 
-## M1 — Core
+## M1 — Core ✅
 
 - Mod schema v1 in Zod, JSON Schema export script, validation helpers.
 - Snapshot type: URL, title, picked element (selector + truncated outerHTML), simplified DOM

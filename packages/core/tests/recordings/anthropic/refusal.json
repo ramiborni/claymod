@@ -1,0 +1,13 @@
+{
+  "status": 200,
+  "body": {
+    "id": "msg_redacted",
+    "type": "message",
+    "role": "assistant",
+    "model": "claude-opus-5-5",
+    "content": [],
+    "stop_reason": "refusal",
+    "stop_details": { "type": "refusal", "category": null, "explanation": "redacted" },
+    "usage": { "input_tokens": 2100, "output_tokens": 0 }
+  }
+}

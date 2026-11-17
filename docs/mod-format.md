@@ -1,15 +1,21 @@
 # Mod format v1
 
-A mod is one JSON document. The Zod schema in `packages/core/src/mod/schema.ts` (added in M1) is
-the source of truth; a JSON Schema is generated from it for models and tooling. This page
-describes it for humans. The format changes only through an issue and a new `schemaVersion`.
+A mod is one JSON document. The Zod schema in `packages/core/src/mod/schema.ts` is the source of
+truth. JSON Schemas generated from it live in `packages/core/schema/`:
+
+- `mod.schema.json` describes a stored mod (use it as `$schema` in editors);
+- `mod-draft.schema.json` describes the part a model writes (see below).
+
+Regenerate them with `bun run --cwd packages/core schema:export`; a unit test fails if they are
+out of date. This page describes the format for humans. It changes only through an issue and a
+new `schemaVersion`.
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `schemaVersion` | `1` | |
 | `id` | uuid | |
-| `name`, `description` | string | Short, human-readable |
-| `matches` | string[] | [Chrome match patterns](https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns), at least one |
+| `name`, `description` | string | Short, human-readable (name 1–80 chars, description ≤ 500) |
+| `matches` | string[] | [Chrome match patterns](https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns), at least one; `http`, `https`, `*` schemes or `<all_urls>` only |
 | `css` | string? | At least one of `css` / `js` |
 | `js` | string? | Runs in the `USER_SCRIPT` world |
 | `runAt` | `document_start` \| `document_end` \| `document_idle` | |
@@ -17,7 +23,16 @@ describes it for humans. The format changes only through an issue and a new `sch
 | `version` | int | Incremented on repair or edit |
 | `createdBy` | `{ provider: string, model: string }` | |
 | `createdAt`, `updatedAt` | ISO string | |
-| `history` | previous versions | Kept at most 5 |
+| `history` | previous versions | Kept at most 5, newest first |
+
+Unknown fields are rejected. A history entry has the draft fields plus `version`, `createdBy` and
+`updatedAt`.
+
+## Drafts: what the model writes
+
+Models only write `name`, `description`, `matches`, `css`, `js`, `runAt` and `checks`. Claymod
+validates that draft, then adds `schemaVersion`, `id`, `version`, `createdBy`, the timestamps and
+`history` itself. A model can't set a mod's identity, version or history.
 
 ## Example
 

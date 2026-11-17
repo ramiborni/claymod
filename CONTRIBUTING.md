@@ -42,16 +42,17 @@ Pick one of these. Both are self-contained and reviewed quickly.
 
 ### Option B: add a model provider
 
-1. Add one file in `packages/core/src/providers/` implementing `ModelProvider`, and register it
-   in the providers index. Use `fetch`; don't add an SDK unless there is no other way.
-2. Record a real response once, save it next to the test, and test against that recording.
-   Tests never hit the network. Remove keys and personal data from recordings.
+1. Add one file in `packages/core/src/providers/` implementing `ModelProvider` (see
+   `anthropic.ts` for a complete example), add its settings to `providers/config.ts` and register
+   it in `providers/index.ts`. Use the injected `fetch`; don't add an SDK unless there is no other
+   way. Error messages must tell the user what to do next.
+2. Record a real response once and save it in `packages/core/tests/recordings/<provider>/`
+   (see the README there). Test against it with `replayFetch` from `tests/helpers.ts`.
+   Unit tests can't reach the network: `fetch` is blocked in the test setup.
 3. Only support access the vendor allows: the user's own API key or a local runtime.
    Never a consumer subscription login.
 4. Run `bun run check && bun test`, add a changeset, open a PR.
 
-(The mod schema and provider interface land in milestone M1; until then, see
-[the roadmap](docs/roadmap.md).)
 
 ## Pull requests
 

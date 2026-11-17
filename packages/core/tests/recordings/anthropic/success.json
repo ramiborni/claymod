@@ -1,0 +1,19 @@
+{
+  "status": 200,
+  "body": {
+    "id": "msg_redacted",
+    "type": "message",
+    "role": "assistant",
+    "model": "claude-opus-5-5",
+    "content": [
+      { "type": "thinking", "thinking": "", "signature": "redacted" },
+      {
+        "type": "text",
+        "text": "{\"name\":\"Hide promoted posts\",\"description\":\"Hides posts marked as promoted.\",\"matches\":[\"https://example.com/*\"],\"css\":\".post.promoted { display: none !important; }\",\"runAt\":\"document_start\",\"checks\":[{\"selector\":\".post\",\"expect\":\"exists\"}]}"
+      }
+    ],
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "usage": { "input_tokens": 2100, "output_tokens": 120 }
+  }
+}

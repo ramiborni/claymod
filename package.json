@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "dev": "bun --filter @claymod/extension dev",
-    "check": "biome check . && bun --filter '*' typecheck",
+    "check": "biome check . && tsc -p tsconfig.json && bun --filter '*' typecheck",
     "check:fix": "biome check --write .",
     "e2e": "bun --filter @claymod/extension e2e",
     "build": "bun --filter '*' build",
