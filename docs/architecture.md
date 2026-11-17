@@ -70,6 +70,7 @@ WXT, Manifest V3, Chrome first.
 | `scripting` | Inject the picker/snapshot content script and preview CSS on that tab |
 | `userScripts` | Preview (and, from M3, run) generated JS in the isolated `USER_SCRIPT` world |
 | `optional_host_permissions: http://*/*, https://*/*` | Nothing at install; **Keep** asks for the mod's sites only |
+| `optional_permissions: nativeMessaging` | Asked for only when you choose a **Local agent** in settings, to talk to `claymod-bridge` |
 
 Clicking the toolbar icon opens the side panel from `action.onClicked`, so the click grants
 `activeTab` for the current page. If you navigate to another site, click the icon again (or keep
@@ -122,9 +123,28 @@ service worker stays alive during long model calls. Only Claymod's own pages may
 
 ### `packages/bridge`
 
-A Bun CLI compiled into a single binary. It is optional: the extension works fully without it.
-Commands: `install`, `uninstall`, `host` (native messaging), `mcp` (MCP stdio server), `doctor`.
-Local agents plug in through the `AgentRunner` interface.
+A Bun CLI compiled into a single binary (macOS arm64/x64, Linux x64, Windows x64). It is
+optional: the extension works fully without it. Commands: `install`, `uninstall`, `doctor`,
+`keys`, `host` (native messaging) and, from M5, `mcp`. Setup and troubleshooting:
+[bridge.md](bridge.md); decisions: [ADR 0004](decisions/0004-local-agents.md).
+
+| Folder | What's inside |
+| --- | --- |
+| `host/` | Native messaging framing (32-bit native-endian length + UTF-8 JSON, 1 MiB out / 64 MiB in), the host loop (concurrent requests, stops agents when Chrome closes the port) and the dispatcher (`hello`, `generate`, `cancel`, `setKey`, `deleteKey`, protocol in `@claymod/core/bridge-protocol`) |
+| `runners/` | One `AgentRunner` per CLI (`claude-code`, `codex`, `gemini`, `antigravity`): pure argument/env/file building and output parsing; `run-agent.ts` runs one in a fresh temp folder with a timeout |
+| `commands/` | `install` / `uninstall` (manifest per browser, Windows registry, dev launcher), `doctor`, `keys` |
+
+Local agent flow: the background's `local-agent` provider (`createLocalAgentProvider`, core)
+sends `generate` over `chrome.runtime.connectNative` (`lib/background/bridge.ts`); the bridge
+runs the agent and returns its raw answer; the extension validates it with the same LangGraph
+retry as other providers. Agent API keys live in the OS keychain on the bridge side; the
+extension never holds them.
+
+### Settings storage
+
+`providerConfig` is stored as `{ v: 2, config, apiKey? }`: the API key is encrypted with AES-GCM
+using a non-extractable key generated once and kept in IndexedDB (`lib/secret-box.ts`). Settings
+saved before this are encrypted on first read.
 
 ## Data flow
 
@@ -143,4 +163,5 @@ Local agents plug in through the `AgentRunner` interface.
 | core | `bun test`, no network; providers tested with recorded responses |
 | extension (UI) | Cypress loads the built side panel and options pages over http with a fake `chrome` API (`cypress/support/fake-chrome.ts`) and scripted background answers, so every UI state (loading, errors, permission refused, …) is tested without a browser extension |
 | extension | `bun test` for pure helpers; Playwright loads the `e2e` build (`.output/chrome-mv3-e2e`) against synthetic fixture pages served by a local mock server that is also a fake OpenAI-compatible model. The `e2e` build mode only adds `host_permissions: http://127.0.0.1/*`, because Playwright can't click the toolbar icon or answer permission prompts |
-| bridge | Unit tests for framing and runners, with process spawning mocked |
+| bridge | `bun test`: framing, runners, commands and the dispatcher with spawning mocked; an integration test installs the bridge into a temp home and starts the host the way Chrome does, against fake agent CLIs |
+| extension + bridge | `tests/e2e/bridge.e2e.ts`: the real extension talks to the real bridge over native messaging (Chrome for Testing, temp `HOME`), with a fake `claude` |

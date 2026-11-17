@@ -1,6 +1,7 @@
 import { testConnection } from "@claymod/core";
 import type { RpcHandlers } from "@/lib/rpc/server";
 import { getProviderConfig } from "@/lib/storage";
+import { bridgeHandlers, testLocalAgent } from "./bridge-handlers";
 import { approveJs, deleteMod, rename, setEnabled, setSitePaused, undo } from "./edit";
 import { generate } from "./generate";
 import { keep } from "./keep";
@@ -20,6 +21,7 @@ export const handlers: RpcHandlers = {
     };
   },
   async testConnection({ config }, signal) {
+    if (config.kind === "local-agent") return testLocalAgent(config, signal);
     const result = await testConnection(providerFor(config), signal);
     return result.ok ? result : { ok: false, error: result.error.message };
   },
@@ -43,4 +45,5 @@ export const handlers: RpcHandlers = {
   importMods,
   repair,
   saveRepair,
+  ...bridgeHandlers,
 };

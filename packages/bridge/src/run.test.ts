@@ -1,23 +1,36 @@
 import { describe, expect, test } from "bun:test";
 import { run } from "./run";
+import { testContext } from "./test-context";
 
 describe("run", () => {
-  test("prints usage with no arguments", () => {
-    const output = run([]);
-    expect(output.exitCode).toBe(0);
-    expect(output.stdout).toContain("Usage: claymod-bridge");
-    expect(output.stdout).toContain("doctor");
+  test("prints usage with no arguments", async () => {
+    const context = testContext();
+    expect(await run([], context)).toBe(0);
+    expect(context.stdout.join("\n")).toContain("Usage: claymod-bridge");
+    expect(context.stdout.join("\n")).toContain("doctor");
   });
 
-  test("rejects unknown commands with a next step", () => {
-    const output = run(["frobnicate"]);
-    expect(output.exitCode).toBe(2);
-    expect(output.stderr).toContain("--help");
+  test("prints the version", async () => {
+    const context = testContext();
+    expect(await run(["--version"], context)).toBe(0);
+    expect(context.stdout).toEqual(["1.2.3"]);
   });
 
-  test("known commands report the milestone they arrive in", () => {
-    const output = run(["host"]);
-    expect(output.exitCode).toBe(1);
-    expect(output.stderr).toContain("M4");
+  test("rejects unknown commands with a next step", async () => {
+    const context = testContext();
+    expect(await run(["frobnicate"], context)).toBe(2);
+    expect(context.stderr.join("\n")).toContain("--help");
+  });
+
+  test("mcp reports the milestone it arrives in", async () => {
+    const context = testContext();
+    expect(await run(["mcp"], context)).toBe(1);
+    expect(context.stderr.join("\n")).toContain("M5");
+  });
+
+  test("Chrome's origin argument starts the host, which refuses unknown extensions", async () => {
+    const context = testContext();
+    expect(await run([`chrome-extension://${"a".repeat(32)}/`], context)).toBe(1);
+    expect(context.stderr.join("\n")).toContain("claymod-bridge install");
   });
 });

@@ -1,7 +1,7 @@
 import { buildCreatePrompt, generateModDraft, snapshotSchema } from "@claymod/core";
 import type { RpcHandlers } from "@/lib/rpc/server";
 import { askPage } from "./page-access";
-import { configuredProvider, NOT_CONFIGURED } from "./provider";
+import { configuredProvider, NOT_CONFIGURED, providerName } from "./provider";
 
 /** Snapshot the page, ask the configured model for a mod, validate (with one retry). */
 export const generate: RpcHandlers["generate"] = async (
@@ -30,7 +30,7 @@ export const generate: RpcHandlers["generate"] = async (
     ok: true,
     value: {
       draft: result.value.draft,
-      provider: configured.config.kind,
+      provider: providerName(configured.config),
       model: result.value.model,
     },
   };

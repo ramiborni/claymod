@@ -9,25 +9,82 @@
     <main>
       <h1>Claymod settings</h1>
       <p class="muted">
-        Claymod calls a model only when you create or repair a mod. Your key is stored in this
-        browser only and is sent only to the provider you choose.
+        Claymod calls a model only when you create or repair a mod. API keys are encrypted in this
+        browser and sent only to the provider you choose.
       </p>
       <form id="provider-form" class="stack" novalidate>
         <label>Provider
           <select name="kind">
             <option value="openai-compatible">OpenAI-compatible (Ollama, LM Studio, OpenRouter, OpenAI)</option>
             <option value="anthropic">Anthropic API</option>
+            <option value="local-agent">Local agent (Claude Code, Codex, Gemini CLI, Antigravity CLI)</option>
           </select>
         </label>
-        <label>Base URL
+
+        <fieldset data-for="local-agent" class="stack plain">
+          <label>Agent
+            <select name="agent">
+              <option value="claude-code">Claude Code</option>
+              <option value="codex">Codex</option>
+              <option value="gemini">Gemini CLI</option>
+              <option value="antigravity">Antigravity CLI</option>
+            </select>
+          </label>
+          <label>Sign-in
+            <select name="auth">
+              <option value="cli">Use the CLI's own sign-in</option>
+              <option value="api-key">Use an API key (kept in your system keychain)</option>
+            </select>
+            <span class="muted" data-auth="cli">Claymod runs the CLI you installed, unchanged. It never sees your login or tokens.</span>
+          </label>
+          <div class="notice warn" data-testid="sign-in-risk" hidden>
+            <p>
+              <strong>Your Google account could be suspended.</strong> Google says third-party tools
+              that use Gemini CLI or Antigravity sign-in break its terms, and has suspended accounts for it.
+              Claymod runs the official CLI unchanged, but Google hasn't said whether that's allowed.
+              <a href="https://github.com/google-gemini/gemini-cli/blob/main/docs/resources/faq.md" target="_blank" rel="noreferrer">Google's FAQ</a>.
+              An API key is the safe choice.
+            </p>
+            <label class="row" style="font-weight: 400">
+              <input name="riskAccepted" type="checkbox" style="width: auto" />
+              I understand the risk
+            </label>
+          </div>
+          <div class="stack" data-auth="api-key">
+            <label>Agent API key
+              <div class="row" style="flex-wrap: nowrap">
+                <input name="agentKey" type="password" autocomplete="off" spellcheck="false" />
+                <button id="save-agent-key" type="button">Store in keychain</button>
+              </div>
+              <span class="muted" data-testid="agent-key-hint">Sent once to claymod-bridge, which stores it in your system keychain. Claymod keeps no copy.</span>
+            </label>
+            <button id="delete-agent-key" type="button" class="link" style="justify-self: start; align-self: start">Delete the saved key</button>
+          </div>
+          <details class="card" id="bridge-setup">
+            <summary>Set up claymod-bridge</summary>
+            <ol class="stack small">
+              <li>Download <code>claymod-bridge</code> for your computer from the Claymod releases page.</li>
+              <li>In a terminal where your agent works, run:
+                <div class="row" style="flex-wrap: nowrap">
+                  <code data-testid="install-command" id="install-command"></code>
+                  <button id="copy-install" type="button">Copy</button>
+                </div>
+              </li>
+              <li>Click <strong>Test connection</strong> below. Chrome asks once to let Claymod talk to local apps.</li>
+            </ol>
+          </details>
+        </fieldset>
+
+        <label data-for="openai-compatible anthropic">Base URL
           <input name="baseUrl" type="url" autocomplete="off" spellcheck="false" />
           <span class="muted" data-for="openai-compatible">Usually ends in /v1. Ollama: http://localhost:11434/v1 · LM Studio: http://localhost:1234/v1 · OpenRouter: https://openrouter.ai/api/v1</span>
           <span class="muted" data-for="anthropic">Leave empty to use https://api.anthropic.com.</span>
         </label>
         <label>Model
           <input name="model" autocomplete="off" spellcheck="false" />
+          <span class="muted" data-for="local-agent">Optional. Leave empty to use the CLI's default model.</span>
         </label>
-        <label>API key
+        <label data-for="openai-compatible anthropic">API key
           <div class="row" style="flex-wrap: nowrap">
             <input name="apiKey" type="password" autocomplete="off" spellcheck="false" />
             <button id="toggle-key" type="button">Show</button>

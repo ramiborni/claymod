@@ -1,3 +1,4 @@
+import type { AgentId, HelloResult } from "@claymod/core/bridge-protocol";
 import type { ModDraft } from "@claymod/core/mod";
 import type { ProviderConfig } from "@claymod/core/provider-config";
 import type { PickedElement } from "@claymod/core/snapshot";
@@ -6,6 +7,10 @@ import type { PickedElement } from "@claymod/core/snapshot";
 export interface RpcMethods {
   status: { req: Record<string, never>; res: { configured: boolean; label: string } };
   testConnection: { req: { config: ProviderConfig }; res: { model: string } };
+  // claymod-bridge (local agents). API keys go to the OS keychain and never come back.
+  bridgeHello: { req: Record<string, never>; res: HelloResult };
+  bridgeSetKey: { req: { agent: AgentId; key: string }; res: null };
+  bridgeDeleteKey: { req: { agent: AgentId }; res: null };
   pick: { req: { tabId: number }; res: PickedElement | null };
   cancelPick: { req: { tabId: number }; res: null };
   generate: {

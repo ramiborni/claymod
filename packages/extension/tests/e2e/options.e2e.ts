@@ -30,10 +30,13 @@ test("configure a provider, test the connection and save", async ({
     async () => (await chrome.storage.local.get("providerConfig")).providerConfig,
   );
   expect(stored).toEqual({
-    kind: "openai-compatible",
-    baseUrl: `${server.origin}/v1`,
-    model: "mock-model",
-    responseFormat: "json_object",
+    v: 2,
+    config: {
+      kind: "openai-compatible",
+      baseUrl: `${server.origin}/v1`,
+      model: "mock-model",
+      responseFormat: "json_object",
+    },
   });
 });
 

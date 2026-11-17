@@ -10,9 +10,11 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "build": "bun build ./src/cli.ts --target=bun --outdir=dist",
-    "compile": "bun build ./src/cli.ts --compile --outfile=dist/claymod-bridge"
+    "compile": "bun scripts/compile.ts",
+    "compile:all": "bun scripts/compile.ts --all"
   },
   "dependencies": {
-    "@claymod/core": "workspace:*"
+    "@claymod/core": "workspace:*",
+    "zod": "4.6.7"
   }
 }

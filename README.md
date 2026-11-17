@@ -8,7 +8,8 @@ that, the extension re-applies the mod on every visit with **no AI calls**, chec
 fits the page, and helps you repair it when the site changes.
 
 - **Your model, your key.** OpenAI-compatible endpoints (Ollama, LM Studio, OpenRouter, OpenAI),
-  the Anthropic API, or a local agent such as Claude Code through the optional bridge.
+  the Anthropic API, or a local agent (Claude Code, Codex, Gemini CLI, Antigravity CLI) through
+  the optional [bridge](docs/bridge.md).
 - **Private by default.** Page snapshots go only to the provider you configure. No telemetry,
   no Claymod server.
 - **Safe by design.** Generated JS runs only in Chrome's isolated user-script world, only on the

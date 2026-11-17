@@ -19,6 +19,7 @@
       },
       "dependencies": {
         "@claymod/core": "workspace:*",
+        "zod": "4.6.7",
       },
     },
     "packages/core": {

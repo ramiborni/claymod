@@ -1,6 +1,8 @@
 import { type Mod, validateMod } from "@claymod/core/mod";
 import { type ProviderConfig, providerConfigSchema } from "@claymod/core/provider-config";
+import * as z from "zod";
 import { type ModState, modStateSchema, newModState, pausedSitesSchema } from "./mods/state";
+import { seal, sealedSchema, unseal } from "./secret-box";
 
 export const KEYS = {
   provider: "providerConfig",
@@ -9,14 +11,36 @@ export const KEYS = {
   pausedSites: "pausedSites",
 } as const;
 
+/** Provider settings at rest: the API key is encrypted (see secret-box.ts), the rest is plain. */
+const storedProviderSchema = z.object({
+  v: z.literal(2),
+  config: z.record(z.string(), z.unknown()),
+  apiKey: sealedSchema.optional(),
+});
+
 export async function getProviderConfig(): Promise<ProviderConfig | undefined> {
-  const stored = await browser.storage.local.get(KEYS.provider);
-  const parsed = providerConfigSchema.safeParse(stored[KEYS.provider]);
-  return parsed.success ? parsed.data : undefined;
+  const raw = (await browser.storage.local.get(KEYS.provider))[KEYS.provider];
+  const stored = storedProviderSchema.safeParse(raw);
+  if (stored.success) {
+    const apiKey = stored.data.apiKey && (await unseal(stored.data.apiKey));
+    const parsed = providerConfigSchema.safeParse({
+      ...stored.data.config,
+      ...(apiKey ? { apiKey } : {}),
+    });
+    return parsed.success ? parsed.data : undefined;
+  }
+  // Settings saved before keys were encrypted: encrypt them now.
+  const legacy = providerConfigSchema.safeParse(raw);
+  if (!legacy.success) return undefined;
+  await setProviderConfig(legacy.data);
+  return legacy.data;
 }
 
 export async function setProviderConfig(config: ProviderConfig): Promise<void> {
-  await browser.storage.local.set({ [KEYS.provider]: providerConfigSchema.parse(config) });
+  const { apiKey, ...rest } = { apiKey: undefined, ...providerConfigSchema.parse(config) };
+  await browser.storage.local.set({
+    [KEYS.provider]: { v: 2, config: rest, ...(apiKey ? { apiKey: await seal(apiKey) } : {}) },
+  });
 }
 
 export interface Library {

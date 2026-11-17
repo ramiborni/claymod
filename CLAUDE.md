@@ -19,9 +19,12 @@ This file is the source of truth for rules and architecture. Read it before ever
   - Never `eval` in extension pages. Never fetch code at runtime.
 - **Permissions:** request host access per site when a mod is kept (`optional_host_permissions`),
   never `<all_urls>` at install time.
-- **Vendor terms:** users bring their own API keys. Never implement claude.ai login or route requests
-  through a user's Claude subscription; Anthropic does not permit third-party products to offer
-  claude.ai login or rate limits unless approved. Follow every vendor's terms the same way.
+- **Vendor terms:** Claymod never offers a vendor's account login, and never reads, stores or
+  forwards account credentials or session tokens. Direct providers use the user's own API key.
+  Local agents run the user's unmodified, installed CLI, which authenticates however the user set
+  it up through the vendor's own flow, or with the user's own API key. Check each vendor's current
+  terms before adding an agent, and warn the user where a vendor restricts this
+  (see docs/decisions/0004-local-agents.md).
 
 ## Architecture
 
@@ -39,8 +42,9 @@ packages/extension/  WXT, Manifest V3, Chrome first (Firefox later).
                      entrypoints/sidepanel   create / preview / manage UI
                      entrypoints/options     provider settings
 packages/bridge/     Bun CLI, compiled with `bun build --compile`.
-                     Commands: install, uninstall, host (native messaging), mcp (MCP stdio), doctor.
-                     AgentRunner interface; runners: claude-code, codex.
+                     Commands: install, uninstall, doctor, keys, host (native messaging), mcp (M5).
+                     AgentRunner interface; runners: claude-code, codex, gemini, antigravity.
+                     Agent API keys in the OS keychain (Bun.secrets). See docs/bridge.md.
 mods/                Starter mods as JSON, validated in CI.
 docs/                architecture.md, mod-format.md, roadmap.md, decisions/ (ADRs).
 ```
@@ -78,7 +82,9 @@ Defined in `packages/core/src/mod/schema.ts` (Zod). Do not change it without ask
 
 - **New model provider:** one file in `packages/core/src/providers/` wrapping a LangChain chat model
   as a `ModelProvider`, registered in the index, with a recorded-response test.
-- **New agent runner:** one file in `packages/bridge/src/runners/` implementing `AgentRunner`.
+- **New agent runner:** one file in `packages/bridge/src/runners/` implementing `AgentRunner`,
+  registered in `runners/index.ts`, its id/label/command in `packages/core/src/bridge/protocol.ts`,
+  after checking the vendor's terms for third-party use of its CLI and sign-in.
 - **New starter mod:** one JSON file in `mods/` plus a fixture-page test.
 
 ## Code style
@@ -115,7 +121,8 @@ bun test               # unit tests
 bun run e2e            # Playwright end-to-end tests (real extension)
 bun run cypress        # Cypress UI tests (side panel, options) with a fake extension API
 bun run build          # build all packages
-bun run bridge:compile # single-file bridge binaries
+bun run bridge:compile # single-file bridge binary for this machine
+bun run --cwd packages/bridge compile:all  # all release targets
 bunx changeset         # describe a user-visible change
 ```
 

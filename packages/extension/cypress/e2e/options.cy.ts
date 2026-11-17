@@ -46,12 +46,17 @@ describe("options page", () => {
     cy.get("input[name=model]").type("qwen3:8b");
     cy.contains("button", "Save").click();
     cy.get("[data-testid=status]").should("have.text", "Saved.");
-    cy.window().its("fake.stored.providerConfig").should("deep.equal", {
-      kind: "openai-compatible",
-      baseUrl: "http://localhost:11434/v1",
-      model: "qwen3:8b",
-      responseFormat: "json_object",
-    });
+    cy.window()
+      .its("fake.stored.providerConfig")
+      .should("deep.equal", {
+        v: 2,
+        config: {
+          kind: "openai-compatible",
+          baseUrl: "http://localhost:11434/v1",
+          model: "qwen3:8b",
+          responseFormat: "json_object",
+        },
+      });
   });
 
   it("tests the connection and shows the result", () => {
@@ -77,5 +82,28 @@ describe("options page", () => {
     cy.get("input[name=apiKey]").should("have.attr", "type", "text");
     cy.contains("button", "Hide").click();
     cy.get("input[name=apiKey]").should("have.attr", "type", "password");
+  });
+
+  it("stores API keys encrypted, never as plain text", () => {
+    openOptions();
+    cy.get("select[name=kind]").select("anthropic");
+    cy.get("input[name=apiKey]").type("sk-ant-secret");
+    cy.contains("button", "Save").click();
+    cy.get("[data-testid=status]").should("have.text", "Saved.");
+    cy.window()
+      .its("fake.stored.providerConfig")
+      .then((stored) => {
+        expect(JSON.stringify(stored)).not.to.contain("sk-ant-secret");
+        expect(stored).to.have.nested.property("apiKey.iv");
+        expect(stored).to.have.nested.property("config.kind", "anthropic");
+      });
+    // Reloading decrypts the key for the form.
+    cy.window().then((win) => {
+      const stored = win.fake.stored;
+      cy.visit("/options.html", {
+        onBeforeLoad: (next) => installFakeChrome(next, { storage: stored }),
+      });
+    });
+    cy.get("input[name=apiKey]").should("have.value", "sk-ant-secret");
   });
 });

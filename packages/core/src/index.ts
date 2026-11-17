@@ -1,3 +1,4 @@
+export * from "./bridge/protocol";
 export { extractJson } from "./generate/extract-json";
 export {
   type GenerateError,
@@ -19,6 +20,7 @@ export type { ChatMessage, Prompt } from "./prompts/types";
 export * from "./providers/anthropic";
 export * from "./providers/config";
 export { createProvider, type ProviderContext } from "./providers/index";
+export * from "./providers/local-agent";
 export { toLangChainMessages } from "./providers/messages";
 export * from "./providers/openai-compatible";
 export { testConnection } from "./providers/test-connection";

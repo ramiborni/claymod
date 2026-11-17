@@ -11,7 +11,7 @@ import { getLibrary, updateLibrary } from "@/lib/storage";
 import { resetHealth } from "./edit";
 import { askPage } from "./page-access";
 import { clearPreview, preview } from "./preview";
-import { configuredProvider, NOT_CONFIGURED } from "./provider";
+import { configuredProvider, NOT_CONFIGURED, providerName } from "./provider";
 
 /** Asks the model to fix a mod for the page as it is now, then previews the result. */
 export const repair: RpcHandlers["repair"] = async ({ tabId, modId }, signal) => {
@@ -38,7 +38,7 @@ export const repair: RpcHandlers["repair"] = async ({ tabId, modId }, signal) =>
   }
   const generated = {
     draft: result.value.draft,
-    provider: configured.config.kind,
+    provider: providerName(configured.config),
     model: result.value.model,
   };
   const previewed = await preview({ tabId, draft: generated.draft }, signal);

@@ -37,8 +37,11 @@ export interface Completion {
 export interface ModelProvider {
   readonly id: string;
   readonly model: string;
-  /** The underlying LangChain chat model, for graphs that need more than complete(). */
-  readonly chatModel: BaseChatModel;
+  /**
+   * The underlying LangChain chat model, for graphs that need more than complete().
+   * Local agents have none: the agent CLI calls its own model.
+   */
+  readonly chatModel?: BaseChatModel;
   complete(request: CompletionRequest): Promise<Result<Completion, ProviderError>>;
 }
 

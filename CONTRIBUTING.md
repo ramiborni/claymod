@@ -57,6 +57,17 @@ Pick one of these. Both are self-contained and reviewed quickly.
    Never a consumer subscription login.
 4. Run `bun run check && bun test`, add a changeset, open a PR.
 
+### Option C: add a local agent
+
+1. Check the vendor's current terms for third-party use of its CLI and sign-in, and note them in
+   your PR (see [ADR 0004](docs/decisions/0004-local-agents.md)).
+2. Add one file in `packages/bridge/src/runners/` implementing `AgentRunner`: the headless
+   arguments, environment, files and output parsing, all pure. Prefer no tools or a read-only
+   sandbox, and isolate the home folder in API-key mode. Register it in `runners/index.ts` and
+   add its id, label and command in `packages/core/src/bridge/protocol.ts`.
+3. Add unit tests next to the other runners, and teach `tests/fixtures/fake-agent.ts` the CLI's
+   documented output so the integration test covers it.
+4. Run `bun run check && bun test`, add a changeset, open a PR.
 
 ## Pull requests
 

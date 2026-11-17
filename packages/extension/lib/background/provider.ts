@@ -1,5 +1,11 @@
-import { createProvider, type ModelProvider, type ProviderConfig } from "@claymod/core";
+import {
+  AGENT_LABELS,
+  createProvider,
+  type ModelProvider,
+  type ProviderConfig,
+} from "@claymod/core";
 import { getProviderConfig } from "@/lib/storage";
+import { nativeBridge } from "./bridge";
 
 export const NOT_CONFIGURED =
   "Set up a model provider first: open Claymod settings, choose a provider and save.";
@@ -8,7 +14,7 @@ export const NOT_CONFIGURED =
 export const extensionOrigin = () => browser.runtime.getURL("").replace(/\/$/, "");
 
 export function providerFor(config: ProviderConfig): ModelProvider {
-  return createProvider(config, { extensionOrigin: extensionOrigin() });
+  return createProvider(config, { extensionOrigin: extensionOrigin(), bridge: nativeBridge });
 }
 
 export async function configuredProvider(): Promise<
@@ -18,7 +24,15 @@ export async function configuredProvider(): Promise<
   return config && { config, provider: providerFor(config) };
 }
 
+/** Recorded in a mod's createdBy.provider. */
+export function providerName(config: ProviderConfig): string {
+  return config.kind === "local-agent" ? `local-agent:${config.agent}` : config.kind;
+}
+
 export function providerLabel(config: ProviderConfig): string {
+  if (config.kind === "local-agent") {
+    return `${AGENT_LABELS[config.agent]} · ${config.model ?? "CLI default model"} (local)`;
+  }
   const model = config.model ?? "default model";
   return config.kind === "anthropic"
     ? `Anthropic · ${model}`

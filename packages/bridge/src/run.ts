@@ -1,28 +1,24 @@
-import { isCommandName } from "./commands";
+import { COMMAND_HANDLERS, isCommandName } from "./commands";
+import type { CommandContext } from "./context";
 import { usage } from "./usage";
 
-export interface RunOutput {
-  exitCode: number;
-  stdout: string;
-  stderr: string;
-}
-
-/** Pure dispatcher so the CLI can be tested without spawning a process. */
-export function run(args: readonly string[]): RunOutput {
-  const [command] = args;
+/** Dispatches a command; Chrome starts the host with the extension's origin as first argument. */
+export async function run(args: readonly string[], context: CommandContext): Promise<number> {
+  const [command, ...rest] = args;
   if (command === undefined || command === "--help" || command === "-h") {
-    return { exitCode: 0, stdout: usage(), stderr: "" };
+    context.out(usage());
+    return 0;
   }
+  if (command === "--version" || command === "-v") {
+    context.out(context.version);
+    return 0;
+  }
+  if (command.startsWith("chrome-extension://")) return COMMAND_HANDLERS.host([...args], context);
   if (!isCommandName(command)) {
-    return {
-      exitCode: 2,
-      stdout: "",
-      stderr: `Unknown command "${command}". Run 'claymod-bridge --help' to see the available commands.`,
-    };
+    context.err(
+      `Unknown command "${command}". Run 'claymod-bridge --help' to see the available commands.`,
+    );
+    return 2;
   }
-  return {
-    exitCode: 1,
-    stdout: "",
-    stderr: `"${command}" is not implemented yet. It arrives in milestone M4 (see docs/roadmap.md).`,
-  };
+  return COMMAND_HANDLERS[command](rest, context);
 }

@@ -52,13 +52,16 @@ keeps it, and finds it in storage.
 **Done when:** e2e tests show a mod surviving a reload, re-applying on an SPA fixture, a changed
 fixture triggering needs-repair, and imports requiring review.
 
-## M4 — Bridge and local agents
+## M4 — Bridge and local agents ✅
 
 - `claymod-bridge` binaries for macOS (arm64, x64), Linux x64, Windows x64.
-- `install` / `uninstall` / `doctor`; native messaging manifest limited to the Claymod extension ID.
-- `host`: length-prefixed JSON framing, request IDs, timeouts.
-- `AgentRunner` with Claude Code (headless, API key auth only) and Codex runners.
-- Extension provider "Local agent (bridge)".
+- `install` / `uninstall` / `doctor` / `keys`; native messaging manifest limited to the Claymod
+  extension ID (Chrome, Chromium, Chrome for Testing; Windows registry).
+- `host`: length-prefixed JSON framing, request IDs, timeouts, cancellation.
+- `AgentRunner` with Claude Code, Codex, Gemini CLI and Antigravity CLI runners, each with the
+  CLI's own sign-in or an API key in the OS keychain ([ADR 0004](decisions/0004-local-agents.md)).
+- Extension provider "Local agent" with optional `nativeMessaging`; provider API keys encrypted
+  at rest. Setup: [bridge.md](bridge.md).
 
 **Done when:** framing is unit-tested, an integration test runs against a fake agent binary, and
 the manual setup is documented.
