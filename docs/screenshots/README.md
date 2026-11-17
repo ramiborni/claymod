@@ -15,6 +15,18 @@ Regenerate with `SCREENSHOTS_DIR=$PWD/docs/screenshots bun run --cwd packages/ex
 | Error | ![](light-9-panel-error.png) | ![](dark-9-panel-error.png) |
 | Settings | ![](light-10-options.png) | ![](dark-10-options.png) |
 
+## Local agents (M4)
+
+Captured with the real `claymod-bridge` and a fake agent CLI.
+
+| | Light | Dark |
+| --- | --- | --- |
+| Local agent connected (setup steps open) | ![](light-m4-1-local-agent-connected.png) | ![](dark-m4-1-local-agent-connected.png) |
+| API key mode (key goes to the keychain) | ![](light-m4-2-agent-api-key.png) | ![](dark-m4-2-agent-api-key.png) |
+| Google CLI sign-in warning | ![](light-m4-3-google-sign-in-warning.png) | ![](dark-m4-3-google-sign-in-warning.png) |
+| Preview made by a local agent | ![](light-m4-4-panel-preview-local-agent.png) | ![](dark-m4-4-panel-preview-local-agent.png) |
+| Bridge not installed | ![](light-m4-5-bridge-missing.png) | ![](dark-m4-5-bridge-missing.png) |
+
 ## Mod manager (M3)
 
 | | Light | Dark |
