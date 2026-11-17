@@ -27,6 +27,7 @@ async function summarize(mod: Mod, state: ModState, url: string | undefined): Pr
     jsApproved: state.jsApproved,
     health: state.health,
     lastFailed: state.checkRuns.at(-1)?.failedSelectors ?? [],
+    recentChecks: state.checkRuns.slice(-10).map((run) => run.failedSelectors.length === 0),
     appliesHere: url ? matchesAny(mod.matches, url) : false,
     hasAccess: await browser.permissions.contains({ origins: originsForMatches(mod.matches) }),
   };

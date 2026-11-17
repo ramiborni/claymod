@@ -17,3 +17,6 @@ packages/extension/public/webllm/
 
 # Working copies created by Claude Code sessions (git worktrees)
 .claude/worktrees/
+
+# Design tooling working files
+.taste-skill/

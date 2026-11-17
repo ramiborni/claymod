@@ -83,7 +83,6 @@ test("the per-site kill switch pauses every mod on the site, live", async ({
   await seedMods(worker, [HIDE_PROMOTED]);
   const { site, panel } = await openPanel("basic.html");
   await expect(site.locator(".promoted")).toBeHidden();
-  await panel.getByRole("tab", { name: /^Mods/ }).click();
   await panel.getByRole("button", { name: "Pause mods on this site" }).click();
   await expect(panel.getByText("Mods are paused on this site.")).toBeVisible();
   await expect(site.locator(".promoted")).toBeVisible();

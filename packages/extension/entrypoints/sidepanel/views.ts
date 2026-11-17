@@ -1,211 +1,60 @@
-import { isBroadPattern } from "@/lib/origins";
 import { h } from "@/lib/ui/dom";
 import { type AgentRequestActions, renderAgentRequests } from "./agent-view";
-import type { PanelState, PreviewScreen, Purpose } from "./state";
+import { type CommandActions, command, ideas, working } from "./command-view";
+import { type ManagerActions, renderSite } from "./manager-view";
+import { type ResultActions, result } from "./result-view";
+import type { PanelState } from "./state";
 
-export interface CreateActions extends AgentRequestActions {
-  setRequest(value: string): void;
-  pick(): void;
-  cancelPick(): void;
-  clearPicked(): void;
-  generate(): void;
-  cancelGenerate(): void;
-  save(): void;
-  discard(): void;
-  toggleCode(): void;
-  backToCompose(): void;
-  openSettings(): void;
-}
+export interface CreateActions extends CommandActions, ResultActions, AgentRequestActions {}
 
-function compose(state: PanelState, actions: CreateActions): Node {
-  const canGenerate = state.provider.configured && state.request.trim().length > 0;
+function footer(state: PanelState, create: CreateActions, manager: ManagerActions): Node {
+  const all = state.manager.filter === "all";
+  const total = state.manager.view?.mods.length ?? 0;
   return h(
-    "div",
-    { class: "stack" },
-    !state.provider.configured &&
-      h(
-        "div",
-        { class: "notice warn" },
-        "Choose a model provider to start. ",
-        h("button", { class: "link", onclick: actions.openSettings }, "Open settings"),
-      ),
+    "footer",
+    { class: "foot" },
     h(
-      "label",
-      {},
-      "What do you want to change?",
-      h(
-        "textarea",
-        {
-          id: "request",
-          placeholder: "e.g. Hide the promoted posts and make the text bigger",
-          oninput: (event: Event) =>
-            actions.setRequest((event.target as HTMLTextAreaElement).value),
-        },
-        state.request,
-      ),
+      "button",
+      {
+        class: "link",
+        "aria-pressed": String(all),
+        onclick: () => manager.setFilter(all ? "site" : "all"),
+      },
+      all ? "This site" : `All sites · ${total} mod${total === 1 ? "" : "s"}`,
     ),
     h(
-      "div",
+      "span",
       { class: "row" },
+      h("button", { class: "link", onclick: manager.openImport }, "Import…"),
       h(
         "button",
-        { onclick: actions.pick },
-        state.picked ? "Pick another element" : "Pick element",
+        { class: "link", onclick: () => manager.exportMods(), disabled: total === 0 },
+        "Export all",
       ),
-      state.picked &&
-        h(
-          "span",
-          { class: "chip", "data-testid": "picked" },
-          h("span", { title: state.picked.selector }, state.picked.selector),
-          h("button", { "aria-label": "Clear picked element", onclick: actions.clearPicked }, "×"),
-        ),
-    ),
-    h(
-      "div",
-      { class: "row" },
-      h(
-        "button",
-        { class: "primary", id: "generate", disabled: !canGenerate, onclick: actions.generate },
-        "Generate",
-      ),
+      h("button", { class: "link", id: "settings", onclick: create.openSettings }, "Settings"),
     ),
   );
 }
 
-export function codeView(css: string | undefined, js: string | undefined): Node {
-  return h(
-    "div",
-    { class: "stack", "data-testid": "code" },
-    css && h("div", {}, h("p", { class: "muted" }, "CSS"), h("pre", {}, css)),
-    js &&
-      h(
-        "div",
-        {},
-        h("p", { class: "muted" }, "JavaScript (runs in an isolated user-script world)"),
-        h("pre", {}, js),
-      ),
-  );
-}
-
-function purposeLine(purpose: Purpose): string | undefined {
-  if (purpose.kind === "repair") return `Repaired version of “${purpose.modName}”`;
-  if (purpose.kind !== "agent") return undefined;
-  return purpose.replaces
-    ? `Proposed by ${purpose.client}: new version of “${purpose.replaces.name}”`
-    : `Proposed by ${purpose.client}`;
-}
-
-function saveLabel(purpose: Purpose): string {
-  if (purpose.kind === "repair") return "Save repair";
-  if (purpose.kind === "agent" && purpose.replaces) return "Save new version";
-  return "Keep";
-}
-
-function preview(screen: PreviewScreen, state: PanelState, actions: CreateActions): Node {
-  const { draft } = screen.generated;
-  const line = purposeLine(screen.purpose);
-  return h(
-    "div",
-    { class: "card", "data-testid": "preview" },
-    line && h("p", { class: "muted" }, line),
-    h("h2", {}, draft.name),
-    h("p", {}, draft.description),
-    h("p", { class: "muted" }, "Previewing on this tab only. Runs on:"),
-    h("ul", {}, ...draft.matches.map((pattern) => h("li", {}, h("code", {}, pattern)))),
-    draft.matches.some(isBroadPattern) &&
-      h(
-        "div",
-        { class: "notice warn" },
-        "This mod asks to run on every website. Keep it only if that's what you want.",
-      ),
-    screen.preview.js === "ran" &&
-      h(
-        "p",
-        { class: "muted" },
-        "This mod includes JavaScript. Discard reloads the page to undo it.",
-      ),
-    screen.preview.js === "unavailable" &&
-      h(
-        "div",
-        { class: "notice warn" },
-        `This mod includes JavaScript, which wasn't previewed. ${screen.preview.jsHelp ?? ""}`,
-      ),
-    state.saveError && h("div", { class: "notice error", role: "alert" }, state.saveError),
-    h(
-      "div",
-      { class: "row" },
-      h(
-        "button",
-        { class: "primary", disabled: screen.saving, onclick: actions.save },
-        screen.saving ? "Saving…" : saveLabel(screen.purpose),
-      ),
-      h("button", { disabled: screen.saving, onclick: actions.discard }, "Discard"),
-      h(
-        "button",
-        { class: "link", "aria-expanded": String(screen.showCode), onclick: actions.toggleCode },
-        screen.showCode ? "Hide code" : "View code",
-      ),
-    ),
-    screen.showCode && codeView(draft.css, draft.js),
-  );
-}
-
-function busy(text: string, cancel: () => void): Node {
-  return h(
-    "div",
-    { class: "card" },
-    h(
-      "div",
-      { class: "row" },
-      h("div", { class: "spinner", "aria-hidden": "true" }),
-      h("p", { role: "status" }, text),
-    ),
-    h("div", { class: "row" }, h("button", { onclick: cancel }, "Cancel")),
-  );
-}
-
-export function renderCreate(state: PanelState, actions: CreateActions): Node {
+/** Layout G: the command on top, then work in progress or the result, what's waiting, the site. */
+export function renderPanel(
+  state: PanelState,
+  create: CreateActions,
+  manager: ManagerActions,
+): Node[] {
   const screen = state.screen;
   const reviewing =
     screen.name === "preview" && screen.purpose.kind === "agent"
       ? screen.purpose.requestId
       : undefined;
-  return h(
-    "div",
-    { class: "stack" },
-    renderAgentRequests(state.agentRequests, actions, reviewing),
-    renderScreen(state, actions),
-  );
-}
-
-function renderScreen(state: PanelState, actions: CreateActions): Node {
-  const screen = state.screen;
-  switch (screen.name) {
-    case "compose":
-      return compose(state, actions);
-    case "picking":
-      return busy("Click an element on the page. Press Esc to cancel.", actions.cancelPick);
-    case "generating":
-      return busy(screen.label, actions.cancelGenerate);
-    case "preview":
-      return preview(screen, state, actions);
-    case "saved":
-      return h(
-        "div",
-        { class: "stack" },
-        h("div", { class: "notice ok", role: "status" }, screen.message),
-        h(
-          "div",
-          { class: "row" },
-          h("button", { onclick: actions.backToCompose }, "Make another change"),
-        ),
-      );
-    case "error":
-      return h(
-        "div",
-        { class: "stack" },
-        h("div", { class: "notice error", role: "alert" }, screen.message),
-        h("div", { class: "row" }, h("button", { onclick: actions.backToCompose }, "Back")),
-      );
-  }
+  const busy =
+    screen.name === "generating" || screen.name === "picking" || screen.name === "preview";
+  return [
+    command(state, create),
+    ideas(state, create),
+    screen.name === "preview" ? result(screen, state, create) : working(state, create),
+    renderAgentRequests(state.agentRequests, create, reviewing),
+    renderSite(state.manager, manager, busy),
+    footer(state, create, manager),
+  ].filter((node): node is Node => node !== false);
 }

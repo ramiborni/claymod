@@ -45,13 +45,14 @@ test("a changed site triggers needs repair; Repair saves v2 and Undo restores v1
     .poll(() => worker.evaluate((id) => chrome.action.getBadgeText({ tabId: id }), tabId))
     .toBe("!");
 
-  await panel.getByRole("tab", { name: /Mods \(1 needs repair\)/ }).click();
+  await expect(panel.locator(".counts")).toContainText("1 needs repair");
   const card = panel.getByTestId("mod");
-  await expect(card.getByText("Needs repair")).toBeVisible();
+  await expect(card.getByText("Stopped matching the page on the last visits")).toBeVisible();
+  await card.locator("button.mod-name").click();
   await expect(card).toContainText(".post not found");
 
   server.model = { status: 200, content: JSON.stringify(REPAIRED) };
-  await card.getByRole("button", { name: "Repair" }).click();
+  await card.getByRole("button", { name: "Repair" }).first().click();
   await expect(panel.getByText("Repaired version of “Hide promoted posts”")).toBeVisible();
   await expect(site.locator(".entry.sponsored")).toBeHidden(); // previewed
   const prompt =
@@ -72,7 +73,6 @@ test("a changed site triggers needs repair; Repair saves v2 and Undo restores v1
   });
   expect(await modState(worker, OLD_MOD.id)).toMatchObject({ health: "healthy", checkRuns: [] });
 
-  await panel.getByRole("tab", { name: "Mods" }).click();
   await panel.getByTestId("mod").getByRole("button", { name: "Undo" }).click();
   await expect(panel.getByTestId("mod").getByText("v1")).toBeVisible();
   expect(Object.values(await storedMods(worker))[0]).toMatchObject({

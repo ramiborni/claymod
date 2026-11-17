@@ -37,7 +37,7 @@ test("reviewed JavaScript runs as a user script on every visit; unreviewed doesn
   expect(await registeredUserScripts(worker)).toEqual([]);
 
   const card = panel.getByTestId("mod");
-  await panel.getByRole("tab", { name: "Mods" }).click();
+  await card.locator("button.mod-name").click();
   await card.getByRole("button", { name: "View code" }).click();
   await card.getByRole("button", { name: "Enable JavaScript" }).click();
   await expect
@@ -55,7 +55,6 @@ test("the panel explains how to turn user scripts on when JS mods can't run", as
 }) => {
   await seedMods(worker, [JS_MOD], { jsApproved: true });
   const { panel } = await openPanel("basic.html");
-  await panel.getByRole("tab", { name: "Mods" }).click();
   await expect(panel.getByTestId("user-scripts-off")).toContainText('turn on "Allow User Scripts"');
 });
 

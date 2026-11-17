@@ -30,7 +30,6 @@ test("imported JavaScript stays off until the code is viewed and enabled", async
   worker,
 }) => {
   const { panel } = await openPanel("basic.html");
-  await panel.getByRole("tab", { name: "Mods" }).click();
   await panel.getByTestId("import-file").setInputFiles({
     name: "shared.json",
     mimeType: "application/json",
@@ -58,6 +57,7 @@ test("imported JavaScript stays off until the code is viewed and enabled", async
     }),
   ).toBe(0);
 
+  await card.locator("button.mod-name").click();
   await card.getByRole("button", { name: "View code" }).click();
   await expect(card.getByTestId("code")).toContainText("Hello from a mod");
   await card.getByRole("button", { name: "Enable JavaScript" }).click();
@@ -68,20 +68,20 @@ test("imported JavaScript stays off until the code is viewed and enabled", async
 test("enable, rename, export and delete from the mod manager", async ({ openPanel, worker }) => {
   await seedMods(worker, [CSS_MOD]);
   const { site, panel } = await openPanel("basic.html");
-  await panel.getByRole("tab", { name: "Mods" }).click();
   const card = panel.getByTestId("mod");
-  await expect(card.getByRole("heading", { name: "Hide promoted posts" })).toBeVisible();
+  await expect(card.getByRole("button", { name: "Hide promoted posts" })).toBeVisible();
 
   await card.getByLabel("Enabled").uncheck();
   await expect(site.locator(".promoted")).toBeVisible();
-  await expect(card.getByText("Off", { exact: true })).toBeVisible();
+  await expect(card.locator(".mod-status")).toHaveText(/^Off\b/);
   await card.getByLabel("Enabled").check();
   await expect(site.locator(".promoted")).toBeHidden();
 
+  await card.locator("button.mod-name").click();
   await card.getByRole("button", { name: "Rename" }).click();
   await card.getByLabel("New name").fill("No ads please");
   await card.getByRole("button", { name: "Save" }).click();
-  await expect(card.getByRole("heading", { name: "No ads please" })).toBeVisible();
+  await expect(card.locator("button.mod-name")).toHaveText("No ads please");
   expect(Object.values(await storedMods(worker))[0]).toMatchObject({
     name: "No ads please",
     version: 2,

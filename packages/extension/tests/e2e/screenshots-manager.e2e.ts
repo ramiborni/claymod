@@ -61,16 +61,17 @@ for (const scheme of ["light", "dark"] as const) {
     await panel.setViewportSize({ width: 400, height: 900 });
     const prefix = `${scheme}-m3-`;
 
-    await panel.getByRole("tab", { name: /^Mods/ }).click();
     await expect(panel.getByTestId("mod")).toHaveCount(3);
     await shot(panel, `${prefix}1-manager`);
 
     const imported = panel.getByTestId("mod").filter({ hasText: "Reading time badge" });
+    await imported.locator("button.mod-name").click();
     await imported.getByRole("button", { name: "View code" }).click();
     await expect(imported.getByRole("button", { name: "Enable JavaScript" })).toBeVisible();
     await imported.scrollIntoViewIfNeeded();
     await shot(panel, `${prefix}2-js-review`);
     await imported.getByRole("button", { name: "Hide code" }).click();
+    await imported.locator("button.mod-name").click();
 
     server.model = {
       status: 200,
@@ -92,13 +93,12 @@ for (const scheme of ["light", "dark"] as const) {
     await expect(panel.getByText("Repairing “Bigger headlines”…")).toBeVisible();
     await shot(panel, `${prefix}3-repairing`);
     await expect(panel.getByText("Repaired version of “Bigger headlines”")).toBeVisible();
-    await panel.getByRole("button", { name: "View code" }).click();
+    await panel.getByTestId("preview").getByRole("button", { name: "View code" }).click();
     await shot(panel, `${prefix}4-repair-preview`);
     await panel.getByRole("button", { name: "Save repair" }).click();
     await expect(panel.getByText("now version 2")).toBeVisible();
     await shot(panel, `${prefix}5-repaired`);
 
-    await panel.getByRole("tab", { name: /^Mods/ }).click();
     await panel.getByRole("button", { name: "Pause mods on this site" }).click();
     await expect(panel.getByText("Mods are paused on this site.")).toBeVisible();
     await shot(panel, `${prefix}6-site-paused`);

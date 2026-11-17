@@ -28,22 +28,25 @@ export interface PreviewScreen {
   /** The user has seen the JS: it ran in the preview or they opened the code. */
   jsReviewed: boolean;
   saving: boolean;
+  /** Before/After: false while the user looks at the page without the change. */
+  showingChange: boolean;
 }
 
 export type Screen =
   | { name: "compose" }
   | { name: "picking" }
-  | { name: "generating"; label: string }
+  | { name: "generating"; label: string; stage: "writing" | "previewing" }
   | PreviewScreen
   | { name: "saved"; message: string }
   | { name: "error"; message: string };
 
-export type Tab = "create" | "mods";
 export type Filter = "site" | "all";
 
 export interface ManagerUi {
   view: ManagerView | null;
   filter: Filter;
+  /** Mods whose details are open (description, sites, actions). */
+  details: Set<string>;
   /** Mods whose code is expanded. Viewing the code is what unlocks "Enable JavaScript". */
   expanded: Set<string>;
   renaming: string | null;
@@ -52,7 +55,6 @@ export interface ManagerUi {
 }
 
 export interface PanelState {
-  tab: Tab;
   screen: Screen;
   request: string;
   picked: PickedElement | null;
@@ -65,7 +67,6 @@ export interface PanelState {
 }
 
 export const initialState: PanelState = {
-  tab: "create",
   screen: { name: "compose" },
   request: "",
   picked: null,
@@ -74,6 +75,7 @@ export const initialState: PanelState = {
   manager: {
     view: null,
     filter: "site",
+    details: new Set(),
     expanded: new Set(),
     renaming: null,
     confirmDelete: null,

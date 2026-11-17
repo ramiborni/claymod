@@ -57,7 +57,7 @@ WXT, Manifest V3, Chrome first.
 | --- | --- |
 | `background` | Orchestration, provider calls, storage, `chrome.userScripts` registration |
 | `content` | Page snapshot, element picker, CSS apply, health checks, SPA observer (from M2) |
-| `sidepanel` | Create, preview and manage mods |
+| `sidepanel` | Layout G: the command field, work and results in place, agent requests, the site's mods (`command-view`, `result-view`, `agent-view`, `manager-view`, `mod-details`) |
 | `options` | Provider settings |
 
 ### Permissions

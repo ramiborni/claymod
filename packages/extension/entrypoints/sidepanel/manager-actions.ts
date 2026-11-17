@@ -43,6 +43,12 @@ export function managerActions(
     setFilter: (filter) => setUi({ filter }),
     setSitePaused: (host, paused) => void run(ctx.rpc.call("setSitePaused", { host, paused })),
     setEnabled: (id, enabled) => void run(ctx.rpc.call("setEnabled", { id, enabled })),
+    toggleDetails: (id) => {
+      const details = new Set(ctx.get().manager.details);
+      if (details.has(id)) details.delete(id);
+      else details.add(id);
+      setUi({ details });
+    },
     toggleCode: (id) => {
       const expanded = new Set(ctx.get().manager.expanded);
       if (expanded.has(id)) expanded.delete(id);

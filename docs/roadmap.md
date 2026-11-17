@@ -89,15 +89,16 @@ the manual setup is documented.
 manual check where CI has no GPU) creates a mod on-device. CI has no GPU, so real inference is
 the manual check in on-device.md; e2e covers the real service worker and settings.
 
-## M7 — UI polish
+## M7 — UI polish ✅
 
-- Every screen (side panel, mod manager, settings, approvals, errors, empty and loading states)
-  reviewed in light and dark against the frontend, design-engineering, animation and taste
-  skills; fixed, re-captured and reviewed again, round after round, until a pass finds nothing
-  material.
-
-**Done when:** a review round finds no material issues, Cypress and e2e stay green, and the
-screenshots in docs/screenshots show the result.
+- Layout G, chosen from seven explored layouts: the command field on top (with fixed starter
+  ideas, no AI call), steps and the result in place under your words with a Before/After switch,
+  agent requests as one line, then the site you're on and its mods with switches and a strip of
+  the last 10 visits. Details, code and actions open from a mod's name.
+- The "Framed sheet" look: tinted frame, white sheet, teal on what matters, IBM Plex shipped with
+  the extension (no font requests), light and dark. The settings page uses the same frame.
+- Three review rounds on screenshots fixed wrapping buttons, overflowing chips, contradictory
+  empty states and Chrome's 75% body font on extension pages.
 
 ## M8 — Starter mods and releases
 

@@ -28,6 +28,8 @@ export interface RpcMethods {
   };
   preview: { req: { tabId: number; draft: ModDraft }; res: PreviewResult };
   discard: { req: { tabId: number }; res: null };
+  /** Before/After: hides or shows the previewed CSS on the tab (JS can't be hidden). */
+  showPreview: { req: { tabId: number; visible: boolean }; res: null };
   keep: {
     req: { tabId: number; generated: GeneratedDraft; jsReviewed: boolean };
     res: { id: string; name: string };
@@ -99,6 +101,8 @@ export interface ModSummary {
   health: "healthy" | "needs-repair";
   /** Check selectors that failed on the last visit. */
   lastFailed: string[];
+  /** The last 10 visits, oldest first: true when every check passed. */
+  recentChecks: boolean[];
   /** Matches the page in the target tab. */
   appliesHere: boolean;
   /** Claymod has host permission for all of the mod's sites. */

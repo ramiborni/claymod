@@ -9,7 +9,7 @@ import { keep } from "./keep";
 import { listMods } from "./list";
 import { onDeviceHandlers, testOnDevice } from "./on-device-handlers";
 import { askPage } from "./page-access";
-import { discard, preview } from "./preview";
+import { discard, preview, showPreview } from "./preview";
 import { providerFor, providerLabel } from "./provider";
 import { repair, saveRepair } from "./repair";
 import { exportMods, importMods } from "./transfer";
@@ -36,6 +36,7 @@ export const handlers: RpcHandlers = {
   generate,
   preview,
   discard,
+  showPreview,
   keep,
   listMods,
   setEnabled,

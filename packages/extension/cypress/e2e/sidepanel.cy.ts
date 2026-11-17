@@ -67,7 +67,8 @@ describe("side panel", () => {
 
     cy.get("[data-testid=preview]").within(() => {
       cy.contains("h2", "Hide promoted posts");
-      cy.contains("li", "https://example.com/*");
+      cy.contains("p", "runs on https://example.com/*");
+      cy.contains(".changes li", ".post.promoted").should("contain.text", "display: none");
       cy.contains("button", "View code").click();
     });
     cy.get("[data-testid=code]").should(
@@ -144,5 +145,48 @@ describe("side panel", () => {
     cy.window().its("fake.cancelled").should("have.length", 1);
     cy.window().then((win) => win.fake.release("generate"));
     cy.findGenerate().should("be.visible");
+  });
+
+  it("starts from an idea without sending anything", () => {
+    openPanel();
+    cy.contains("button.try", "Make the text bigger").click();
+    cy.get("#request").should("have.value", "Make the text bigger").and("be.focused");
+    cy.get(".tries").should("not.exist");
+    cy.window().its("fake.calls").should("not.deep.include", { method: "generate" });
+    cy.get("#request").clear();
+    cy.get(".tries").should("exist");
+  });
+
+  it("Enter generates; Shift+Enter adds a line", () => {
+    openPanel({ hold: ["generate"] });
+    cy.get("#request").type("Hide promoted posts{shift+enter}and the sidebar");
+    cy.get("#request").should("have.value", "Hide promoted posts\nand the sidebar");
+    cy.get("#request").type("{enter}");
+    cy.contains("[role=status]", "Writing your mod…");
+    cy.contains(".step", "Preview on this tab");
+    calls("generate").its("0.payload.request").should("eq", "Hide promoted posts\nand the sidebar");
+  });
+
+  it("flips the page between Before and After", () => {
+    openPanel({ rpc: { showPreview: { ok: true, value: null } } });
+    cy.get("#request").type("Hide promoted posts{enter}");
+    cy.contains("[data-testid=preview] button", "Before").click();
+    cy.contains("[data-testid=preview] button", "Before").should(
+      "have.attr",
+      "aria-pressed",
+      "true",
+    );
+    calls("showPreview").its("0.payload").should("deep.equal", { tabId: 7, visible: false });
+    cy.contains("[data-testid=preview] button", "After").click();
+    calls("showPreview").its("1.payload").should("deep.equal", { tabId: 7, visible: true });
+  });
+
+  it("can't hide a JavaScript preview without a reload, and says so", () => {
+    openPanel({ rpc: { preview: { ok: true, value: { css: true, js: "ran" } } } });
+    cy.get("#request").type("Hide promoted posts{enter}");
+    cy.contains("[data-testid=preview] button", "Before")
+      .should("be.disabled")
+      .and("have.attr", "title")
+      .and("contain", "can't be hidden without reloading");
   });
 });

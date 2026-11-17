@@ -1,32 +1,40 @@
 import "@/lib/ui/theme.css";
+import "@/lib/ui/panel.css";
 import { useJitlessZod } from "@claymod/core/zod-config";
 import { AGENT_REQUESTS_KEY } from "@/lib/agent-keys";
 import { createRpcClient } from "@/lib/rpc/client";
 import { KEYS } from "@/lib/storage";
-import { h } from "@/lib/ui/dom";
 import type { PanelContext } from "./context";
 import { createActions } from "./create-actions";
 import { managerActions } from "./manager-actions";
-import { renderManager } from "./manager-view";
-import { initialState, type PanelState, type Tab } from "./state";
+import { initialState, type PanelState } from "./state";
 import { targetTabId } from "./target-tab";
-import { renderCreate } from "./views";
+import { renderPanel } from "./views";
 
 useJitlessZod();
 const rpc = createRpcClient();
 const content = document.getElementById("content") as HTMLElement;
 const providerLabel = document.getElementById("provider") as HTMLElement;
-const tabs = document.getElementById("tabs") as HTMLElement;
 let state: PanelState = initialState;
+
+/** Re-rendering replaces the field; keep focus and the caret where the user left them. */
+function keepFocus(render: () => void) {
+  const field = document.activeElement as HTMLTextAreaElement | null;
+  const focused =
+    field?.id === "request" ? { start: field.selectionStart, end: field.selectionEnd } : null;
+  render();
+  if (!focused) return;
+  const next = document.getElementById("request") as HTMLTextAreaElement | null;
+  next?.focus();
+  next?.setSelectionRange(focused.start, focused.end);
+}
 
 const ctx: PanelContext = {
   rpc,
   get: () => state,
   update(patch) {
-    const focusedId = document.activeElement?.id;
     state = { ...state, ...patch };
-    render();
-    if (focusedId === "request") document.getElementById("request")?.focus();
+    keepFocus(render);
   },
   async refreshMods() {
     const result = await rpc.call("listMods", { tabId: await targetTabId() });
@@ -37,36 +45,9 @@ const ctx: PanelContext = {
 const create = createActions(ctx);
 const manager = managerActions(ctx, create.startRepair);
 
-function tabButton(tab: Tab, label: string) {
-  return h(
-    "button",
-    {
-      role: "tab",
-      "aria-selected": String(state.tab === tab),
-      onclick: () => {
-        ctx.update({ tab });
-        if (tab === "mods") void ctx.refreshMods();
-      },
-    },
-    label,
-  );
-}
-
 function render() {
   providerLabel.textContent = state.provider.label || "No provider";
-  const repairs =
-    state.manager.view?.mods.filter((mod) => mod.health === "needs-repair" && mod.appliesHere)
-      .length ?? 0;
-  tabs.replaceChildren(
-    tabButton("create", "Create"),
-    tabButton(
-      "mods",
-      repairs ? `Mods (${repairs} ${repairs === 1 ? "needs" : "need"} repair)` : "Mods",
-    ),
-  );
-  content.replaceChildren(
-    state.tab === "create" ? renderCreate(state, create) : renderManager(state.manager, manager),
-  );
+  content.replaceChildren(...renderPanel(state, create, manager));
 }
 
 async function refreshProvider() {
@@ -79,7 +60,6 @@ async function refreshAgentRequests() {
   if (requests.ok) ctx.update({ agentRequests: requests.value });
 }
 
-document.getElementById("settings")?.addEventListener("click", create.openSettings);
 browser.storage.onChanged.addListener((changes, area) => {
   if (area === "session" && AGENT_REQUESTS_KEY in changes) void refreshAgentRequests();
   if (area !== "local") return;

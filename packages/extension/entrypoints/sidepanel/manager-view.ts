@@ -1,12 +1,13 @@
 import type { ManagerView, ModSummary } from "@/lib/rpc/protocol";
 import { h } from "@/lib/ui/dom";
+import { enabledSwitch, modDetails } from "./mod-details";
 import type { ManagerUi } from "./state";
-import { codeView } from "./views";
 
 export interface ManagerActions {
   setFilter(filter: ManagerUi["filter"]): void;
   setSitePaused(host: string, paused: boolean): void;
   setEnabled(id: string, enabled: boolean): void;
+  toggleDetails(id: string): void;
   toggleCode(id: string): void;
   approveJs(id: string): void;
   startRename(id: string | null): void;
@@ -21,145 +22,137 @@ export interface ManagerActions {
   openImport(): void;
 }
 
-function pills(mod: ModSummary): Node[] {
-  const pill = (kind: string, text: string) => h("span", { class: `pill ${kind}` }, text);
-  return [
-    !mod.enabled && pill("", "Off"),
-    mod.health === "needs-repair" && pill("error", "Needs repair"),
-    mod.js && !mod.jsApproved && pill("warn", "JavaScript needs review"),
-    !mod.hasAccess && pill("warn", "Needs site access"),
-    pill("", `v${mod.version}`),
-  ].filter((node): node is HTMLElement => Boolean(node));
-}
+const VISITS = 10;
 
-function renameForm(mod: ModSummary, actions: ManagerActions): Node {
-  const input = h("input", { value: mod.name, "aria-label": "New name", maxlength: "80" });
-  const submit = (event: Event) => {
-    event.preventDefault();
-    actions.rename(mod.id, input.value);
-  };
+/** The last visits as a strip: one cell per visit, failed in red, not visited yet empty. */
+function strip(mod: ModSummary): Node {
+  const runs = mod.recentChecks.slice(-VISITS);
+  const failed = runs.filter((passed) => !passed).length;
+  const label = runs.length
+    ? `Last ${runs.length} visit${runs.length === 1 ? "" : "s"}: ${runs.length - failed} passed${failed ? `, ${failed} failed` : ""}`
+    : "Not checked on a visit yet";
+  const cells = [
+    ...runs.map((passed) => (passed ? "" : "x")),
+    ...Array(VISITS - runs.length).fill("e"),
+  ];
   return h(
-    "form",
-    { class: "row", onsubmit: submit },
-    input,
-    h("button", { class: "primary", type: "submit" }, "Save"),
-    h("button", { type: "button", onclick: () => actions.startRename(null) }, "Cancel"),
+    "span",
+    { class: "strip", role: "img", "aria-label": label },
+    ...cells.map((kind) => h("i", kind ? { class: kind } : {})),
   );
 }
 
-function modCard(mod: ModSummary, ui: ManagerUi, actions: ManagerActions): Node {
-  const expanded = ui.expanded.has(mod.id);
-  const deleting = ui.confirmDelete === mod.id;
+function status(mod: ModSummary, ui: ManagerUi): Node {
+  if (mod.health === "needs-repair") {
+    return h("span", { class: "mod-status bad" }, "Stopped matching the page on the last visits");
+  }
+  const extras = [
+    !mod.enabled && "Off",
+    mod.js && !mod.jsApproved && "JavaScript needs review",
+    !mod.hasAccess && "Needs site access",
+    mod.recentChecks.length === 0 && "Not checked on a visit yet",
+    ui.filter === "all" && mod.matches[0],
+  ].filter(Boolean);
+  return h(
+    "span",
+    { class: "row", style: "gap:8px" },
+    mod.recentChecks.length > 0 && strip(mod),
+    extras.length > 0 && h("span", { class: "mod-status" }, extras.join(" · ")),
+  );
+}
+
+function modItem(mod: ModSummary, ui: ManagerUi, actions: ManagerActions): Node {
+  const open = ui.details.has(mod.id);
+  const broken = mod.health === "needs-repair";
   return h(
     "article",
-    { class: "card", "data-testid": "mod", "data-mod-id": mod.id },
-    ui.renaming === mod.id ? renameForm(mod, actions) : h("h3", {}, mod.name),
-    h("div", { class: "row" }, ...pills(mod)),
-    h("p", { class: "muted" }, mod.description),
-    h("p", { class: "muted small" }, mod.matches.join(", ")),
-    mod.health === "needs-repair" &&
-      h(
-        "div",
-        { class: "notice error" },
-        `This mod's checks failed on the last visits${mod.lastFailed.length ? ` (${mod.lastFailed.join(", ")} not found)` : ""}. The site probably changed. `,
-        mod.appliesHere
-          ? h("button", { class: "link", onclick: () => actions.repair(mod) }, "Repair")
-          : "Open a page where it runs to repair it.",
-      ),
-    !mod.hasAccess &&
-      h(
-        "div",
-        { class: "notice warn" },
-        "Claymod can't run this mod until you allow it on its sites. ",
-        h("button", { class: "link", onclick: () => actions.allowAccess(mod) }, "Allow"),
-      ),
+    { class: "mod", "data-testid": "mod", "data-mod-id": mod.id },
     h(
       "div",
-      { class: "row" },
+      { class: "mod-row" },
       h(
-        "label",
-        { class: "switch" },
-        h("input", {
-          type: "checkbox",
-          checked: mod.enabled,
-          onchange: (e: Event) =>
-            actions.setEnabled(mod.id, (e.target as HTMLInputElement).checked),
-        }),
-        "Enabled",
+        "div",
+        { class: "mod-main" },
+        h(
+          "button",
+          {
+            class: "mod-name",
+            "aria-expanded": String(open),
+            onclick: () => actions.toggleDetails(mod.id),
+          },
+          mod.name,
+        ),
+        status(mod, ui),
       ),
+      broken && mod.appliesHere
+        ? h("button", { class: "sm primary", onclick: () => actions.repair(mod) }, "Repair")
+        : enabledSwitch(mod, actions),
+    ),
+    open && modDetails(mod, ui, actions),
+  );
+}
+
+function head(
+  view: ManagerView,
+  ui: ManagerUi,
+  shown: ModSummary[],
+  actions: ManagerActions,
+): Node {
+  const site = ui.filter === "site" ? view.site : null;
+  const running = shown.filter((m) => m.enabled && m.health === "healthy").length;
+  const broken = shown.filter((m) => m.health === "needs-repair").length;
+  const off = shown.filter((m) => !m.enabled).length;
+  return h(
+    "div",
+    { class: "site-head" },
+    h(
+      "div",
+      { class: "stack", style: "gap:4px;min-width:0" },
+      h(
+        "h2",
+        { class: "site-name" },
+        site ? site.host : ui.filter === "all" ? "All sites" : "This tab",
+      ),
+      h(
+        "span",
+        { class: "counts" },
+        h("span", {}, h("b", {}, String(running)), " running"),
+        broken > 0 && h("span", { class: "bad" }, h("b", {}, String(broken)), " needs repair"),
+        off > 0 && h("span", {}, h("b", {}, String(off)), " off"),
+      ),
+    ),
+    site &&
       h(
         "button",
         {
-          class: "link",
-          "aria-expanded": String(expanded),
-          onclick: () => actions.toggleCode(mod.id),
+          class: "sm",
+          "aria-label": site.paused ? "Resume mods on this site" : "Pause mods on this site",
+          onclick: () => actions.setSitePaused(site.host, !site.paused),
         },
-        expanded ? "Hide code" : "View code",
-      ),
-      h("button", { class: "link", onclick: () => actions.startRename(mod.id) }, "Rename"),
-      mod.canUndo && h("button", { class: "link", onclick: () => actions.undo(mod.id) }, "Undo"),
-      h("button", { class: "link", onclick: () => actions.exportMods([mod.id]) }, "Export"),
-      deleting
-        ? h(
-            "button",
-            { class: "link danger", onclick: () => actions.remove(mod.id) },
-            "Delete for good?",
-          )
-        : h("button", { class: "link", onclick: () => actions.askDelete(mod.id) }, "Delete"),
-    ),
-    expanded && codeView(mod.css, mod.js),
-    expanded &&
-      mod.js &&
-      !mod.jsApproved &&
-      h(
-        "div",
-        { class: "notice warn" },
-        "Read the JavaScript above. Enable it only if you trust it. ",
-        h(
-          "button",
-          { class: "primary", onclick: () => actions.approveJs(mod.id) },
-          "Enable JavaScript",
-        ),
+        site.paused ? "Resume site" : "Pause site",
       ),
   );
 }
 
-function siteBar(view: ManagerView, actions: ManagerActions): Node | false {
-  const site = view.site;
-  if (!site) return false;
-  return h(
-    "div",
-    { class: "row between" },
-    h("span", {}, h("strong", {}, site.host), site.paused ? " · all mods paused" : ""),
-    h(
-      "button",
-      { onclick: () => actions.setSitePaused(site.host, !site.paused) },
-      site.paused ? "Resume mods on this site" : "Pause mods on this site",
-    ),
-  );
-}
-
-export function renderManager(ui: ManagerUi, actions: ManagerActions): Node {
+/** The site you're on (or every site) and its mods, under the command. */
+export function renderSite(ui: ManagerUi, actions: ManagerActions, dim: boolean): Node {
   const view = ui.view;
-  if (!view) return h("p", { class: "muted" }, "Loading…");
+  const cls = dim ? "site dim" : "site";
+  if (!view)
+    return h(
+      "section",
+      { class: cls },
+      h("p", { class: "empty", style: "padding-top:14px" }, "Loading…"),
+    );
   const shown = view.mods.filter((mod) => ui.filter === "all" || mod.appliesHere);
   const jsBlocked =
-    view.mods.some((mod) => mod.enabled && mod.js && mod.jsApproved) && !view.userScripts.available;
-  const segment = (filter: ManagerUi["filter"], label: string) =>
-    h(
-      "button",
-      {
-        class: ui.filter === filter ? "segment active" : "segment",
-        "aria-pressed": String(ui.filter === filter),
-        onclick: () => actions.setFilter(filter),
-      },
-      label,
-    );
+    view.mods.some((m) => m.enabled && m.js && m.jsApproved) && !view.userScripts.available;
   return h(
-    "div",
-    { class: "stack" },
-    siteBar(view, actions),
-    view.site?.paused &&
+    "section",
+    { class: cls, "aria-label": "Mods" },
+    head(view, ui, shown, actions),
+    ui.filter === "site" &&
+      view.site?.paused &&
       h(
         "div",
         { class: "notice warn" },
@@ -180,25 +173,14 @@ export function renderManager(ui: ManagerUi, actions: ManagerActions): Node {
         },
         ui.notice.text,
       ),
-    h("div", { class: "row" }, segment("site", "This site"), segment("all", "All sites")),
     shown.length === 0 &&
       h(
         "p",
-        { class: "muted" },
+        { class: "empty" },
         ui.filter === "site"
-          ? "No mods for this site yet. Describe a change in Create."
+          ? "No mods for this site yet. Describe a change above."
           : "No mods yet.",
       ),
-    ...shown.map((mod) => modCard(mod, ui, actions)),
-    h(
-      "div",
-      { class: "row" },
-      h(
-        "button",
-        { onclick: () => actions.exportMods(), disabled: view.mods.length === 0 },
-        "Export all",
-      ),
-      h("button", { onclick: actions.openImport }, "Import…"),
-    ),
+    ...shown.map((mod) => modItem(mod, ui, actions)),
   );
 }

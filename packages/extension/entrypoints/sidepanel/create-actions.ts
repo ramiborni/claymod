@@ -10,8 +10,7 @@ export function createActions(ctx: PanelContext): CreateActions & {
 } {
   let generation: AbortController | undefined;
   let pickTabId: number | undefined;
-  const fail = (message: string) =>
-    ctx.update({ tab: "create", screen: { name: "error", message } });
+  const fail = (message: string) => ctx.update({ screen: { name: "error", message } });
 
   async function withTab(run: (tabId: number) => Promise<void>) {
     const tabId = await targetTabId();
@@ -26,7 +25,6 @@ export function createActions(ctx: PanelContext): CreateActions & {
     preview: PreviewScreen["preview"],
   ) {
     ctx.update({
-      tab: "create",
       saveError: undefined,
       screen: {
         name: "preview",
@@ -37,6 +35,7 @@ export function createActions(ctx: PanelContext): CreateActions & {
         showCode: false,
         jsReviewed: preview.js === "ran",
         saving: false,
+        showingChange: true,
       },
     });
   }
@@ -113,7 +112,11 @@ export function createActions(ctx: PanelContext): CreateActions & {
 
   return {
     setRequest: (value) => {
+      const wasEmpty = !ctx.get().request.trim();
+      // Typing mutates state without re-rendering (the caret stays put); only going from empty to
+      // filled or back re-renders, to show or hide the ideas.
       ctx.get().request = value;
+      if (wasEmpty !== !value.trim()) return ctx.update({});
       const button = document.getElementById("generate") as HTMLButtonElement | null;
       if (button) button.disabled = !ctx.get().provider.configured || !value.trim();
     },
@@ -133,7 +136,7 @@ export function createActions(ctx: PanelContext): CreateActions & {
       void withTab(async (tabId) => {
         generation = new AbortController();
         ctx.update({
-          screen: { name: "generating", label: "Writing your mod…" },
+          screen: { name: "generating", label: "Writing your mod…", stage: "writing" },
           saveError: undefined,
         });
         const { request, picked } = ctx.get();
@@ -146,6 +149,9 @@ export function createActions(ctx: PanelContext): CreateActions & {
           return generation.signal.aborted
             ? ctx.update({ screen: { name: "compose" } })
             : fail(generated.error);
+        ctx.update({
+          screen: { name: "generating", label: "Writing your mod…", stage: "previewing" },
+        });
         const preview = await ctx.rpc.call("preview", { tabId, draft: generated.value.draft });
         if (!preview.ok) return fail(preview.error);
         showPreview({ kind: "create" }, tabId, generated.value, preview.value);
@@ -154,8 +160,7 @@ export function createActions(ctx: PanelContext): CreateActions & {
       void withTab(async (tabId) => {
         generation = new AbortController();
         ctx.update({
-          tab: "create",
-          screen: { name: "generating", label: `Repairing “${modName}”…` },
+          screen: { name: "generating", label: `Repairing “${modName}”…`, stage: "writing" },
         });
         const result = await ctx.rpc.call("repair", { tabId, modId }, generation.signal);
         if (!result.ok)
@@ -170,6 +175,20 @@ export function createActions(ctx: PanelContext): CreateActions & {
         );
       }),
     cancelGenerate: () => generation?.abort(),
+    useIdea: (text) => {
+      ctx.update({ request: text });
+      const field = document.getElementById("request") as HTMLTextAreaElement | null;
+      field?.focus();
+      field?.setSelectionRange(text.length, text.length);
+    },
+    showChange: (visible) => {
+      const screen = ctx.get().screen;
+      if (screen.name !== "preview") return;
+      ctx.update({ screen: { ...screen, showingChange: visible } });
+      void ctx.rpc.call("showPreview", { tabId: screen.tabId, visible }).then((result) => {
+        if (!result.ok) ctx.update({ saveError: result.error });
+      });
+    },
     save: () => {
       const screen = ctx.get().screen;
       if (screen.name !== "preview") return;

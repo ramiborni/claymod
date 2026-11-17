@@ -1,4 +1,5 @@
 import "@/lib/ui/theme.css";
+import "@/lib/ui/options.css";
 import type { AgentAuth, AgentId } from "@claymod/core/bridge-protocol";
 import { useJitlessZod } from "@claymod/core/zod-config";
 import { createRpcClient } from "@/lib/rpc/client";

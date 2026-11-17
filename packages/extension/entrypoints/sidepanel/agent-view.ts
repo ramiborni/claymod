@@ -6,7 +6,7 @@ export interface AgentRequestActions {
   declineAgentRequest(request: AgentRequestView): void;
 }
 
-function requestCard(request: AgentRequestView, actions: AgentRequestActions): Node {
+function requestRow(request: AgentRequestView, actions: AgentRequestActions): Node {
   const { draft } = request;
   const asks =
     request.tool === "save_mod"
@@ -17,14 +17,13 @@ function requestCard(request: AgentRequestView, actions: AgentRequestActions): N
   return h(
     "div",
     {
-      class: "card stack",
+      class: "need",
       "data-testid": "agent-request",
       role: "group",
       "aria-label": `${request.client} ${asks}`,
     },
-    h("p", { class: "muted small" }, h("strong", {}, request.client), ` ${asks}`),
-    h("h2", {}, draft.name),
-    h("p", {}, draft.description),
+    h("span", { class: "who" }, h("span", {}, h("strong", {}, request.client), ` ${asks}`)),
+    h("h3", {}, draft.name),
     h("p", { class: "muted small" }, `Runs on: ${draft.matches.join(", ")}`),
     draft.js?.trim() &&
       h(
@@ -37,15 +36,15 @@ function requestCard(request: AgentRequestView, actions: AgentRequestActions): N
       { class: "row" },
       h(
         "button",
-        { class: "primary", onclick: () => actions.reviewAgentRequest(request) },
+        { class: "sm primary", onclick: () => actions.reviewAgentRequest(request) },
         "Preview",
       ),
-      h("button", { onclick: () => actions.declineAgentRequest(request) }, "Decline"),
+      h("button", { class: "sm", onclick: () => actions.declineAgentRequest(request) }, "Decline"),
     ),
   );
 }
 
-/** Agent proposals, newest last, shown above the Create screen until the user decides. */
+/** What's waiting for the user (agent proposals), between the command and the site. */
 export function renderAgentRequests(
   requests: AgentRequestView[],
   actions: AgentRequestActions,
@@ -56,8 +55,8 @@ export function renderAgentRequests(
     shown.length > 0 &&
     h(
       "section",
-      { class: "stack", "aria-label": "Requests from agents" },
-      ...shown.map((r) => requestCard(r, actions)),
+      { class: "needs", "aria-label": "Waiting for you" },
+      ...shown.map((request) => requestRow(request, actions)),
     )
   );
 }

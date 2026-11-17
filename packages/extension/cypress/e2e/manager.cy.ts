@@ -14,6 +14,7 @@ function mod(overrides: Partial<ModSummary> = {}): ModSummary {
     jsApproved: true,
     health: "healthy",
     lastFailed: [],
+    recentChecks: [true, true, true, true],
     appliesHere: true,
     hasAccess: true,
     ...overrides,
@@ -52,8 +53,10 @@ function openMods(manager: ManagerView, options: FakeChromeOptions = {}) {
         },
       }),
   });
-  cy.contains("[role=tab]", "Mods").click();
+  cy.get("section[aria-label=Mods]").should("exist");
 }
+
+const openDetails = (name = "Hide promoted posts") => cy.contains("button.mod-name", name).click();
 
 const callsTo = (method: string) =>
   cy.window().then((win) => win.fake.calls.filter((call) => call.method === method));
@@ -68,37 +71,52 @@ describe("mod manager", () => {
 
   it("explains an empty site", () => {
     openMods(view([]));
-    cy.contains("No mods for this site yet. Describe a change in Create.");
+    cy.contains("No mods for this site yet. Describe a change above.");
     cy.contains("button", "Export all").should("be.disabled");
   });
 
-  it("shows status pills", () => {
+  it("shows each mod's state on its row, and the details on request", () => {
     openMods(
       view([
+        mod({ health: "needs-repair", version: 4, lastFailed: [".post"] }),
         mod({
+          id: "b",
+          name: "Dark mode",
           enabled: false,
-          health: "needs-repair",
           js: "x",
           jsApproved: false,
           hasAccess: false,
-          version: 4,
         }),
       ]),
     );
-    for (const pill of [
-      "Off",
-      "Needs repair",
-      "JavaScript needs review",
-      "Needs site access",
-      "v4",
-    ])
-      cy.contains(".pill", pill);
+    cy.contains("[data-testid=mod]", "Hide promoted posts").should(
+      "contain.text",
+      "Stopped matching",
+    );
+    cy.contains("[data-testid=mod]", "Dark mode").should(
+      "contain.text",
+      "Off · JavaScript needs review · Needs site access",
+    );
+    cy.get(".counts").should("contain.text", "0 running").and("contain.text", "1 needs repair");
+    openDetails();
+    cy.contains("[data-testid=mod]", "Hide promoted posts")
+      .should("contain.text", "v4")
+      .and("contain.text", ".post not found");
+  });
+
+  it("shows the last visits as a strip", () => {
+    openMods(view([mod({ recentChecks: [true, true, false] })]));
+    cy.get(".strip").should("have.attr", "aria-label", "Last 3 visits: 2 passed, 1 failed");
+    cy.get(".strip i").should("have.length", 10);
+    cy.get(".strip i.x").should("have.length", 1);
+    cy.get(".strip i.e").should("have.length", 7);
   });
 
   it("toggles a mod, renames it and asks before deleting", () => {
     openMods(view([mod()]));
     cy.contains("label", "Enabled").find("input").uncheck();
     callsTo("setEnabled").its("0.payload").should("deep.equal", { id: "a", enabled: false });
+    openDetails();
     cy.contains("button", "Rename").click();
     cy.get("input[aria-label='New name']").clear().type("No ads");
     cy.contains("button", "Save").click();
@@ -111,13 +129,17 @@ describe("mod manager", () => {
 
   it("offers Undo only when there is a previous version", () => {
     openMods(view([mod({ canUndo: false })]));
+    openDetails();
+    cy.contains("button", "Rename").should("be.visible");
     cy.contains("button", "Undo").should("not.exist");
   });
 
   it("pauses every mod on the site", () => {
     openMods(view([mod()]));
-    cy.contains("strong", "example.com");
-    cy.contains("button", "Pause mods on this site").click();
+    cy.contains("h2", "example.com");
+    cy.get("button[aria-label='Pause mods on this site']")
+      .should("have.text", "Pause site")
+      .click();
     callsTo("setSitePaused")
       .its("0.payload")
       .should("deep.equal", { host: "example.com", paused: true });
@@ -126,6 +148,7 @@ describe("mod manager", () => {
   it("only offers Enable JavaScript after the code was viewed", () => {
     openMods(view([mod({ js: "alert(1)", jsApproved: false })]));
     cy.contains("button", "Enable JavaScript").should("not.exist");
+    openDetails();
     cy.contains("button", "View code").click();
     cy.get("[data-testid=code]").should("contain.text", "alert(1)");
     cy.contains("button", "Enable JavaScript").click();
@@ -143,6 +166,7 @@ describe("mod manager", () => {
 
   it("asks for site access from the click", () => {
     openMods(view([mod({ hasAccess: false })]));
+    openDetails();
     cy.contains(".notice", "can't run this mod until you allow it")
       .contains("button", "Allow")
       .click();
@@ -172,7 +196,7 @@ describe("mod manager", () => {
         saveRepair: { ok: true, value: { name: "Hide promoted posts", version: 3 } },
       },
     });
-    cy.contains(".notice", ".post not found").contains("button", "Repair").click();
+    cy.contains("[data-testid=mod] button", "Repair").click();
     cy.contains("Repaired version of “Hide promoted posts”");
     cy.contains("button", "Save repair").click();
     callsTo("saveRepair").its("0.payload").should("deep.include", { modId: "a", tabId: 7 });

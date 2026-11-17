@@ -1,146 +1,261 @@
+/*
+ * Claymod's look: "Framed sheet". The chrome is one tinted frame; the work sits on a white sheet
+ * inset from it, so depth is a single tone step (no shadows at rest). Teal marks the selected
+ * thing, what a mod changes and the primary action. IBM Plex ships with the extension (no font
+ * requests leave the browser). Dark mode keeps the same structure one lightness step apart.
+ */
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("/fonts/IBMPlexSans-var.woff2") format("woff2");
+  font-weight: 400 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-500.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light dark;
-  --bg: #ffffff;
-  --surface: #f5f4f8;
-  --border: #dddae6;
-  --text: #1d1b26;
-  --muted: #6a6680;
-  --accent: #6b4dff;
-  --accent-text: #ffffff;
-  --danger-bg: #fdecec;
-  --danger: #a32020;
+  --frame: #e9eef1;
+  --frame-ink: #131416;
+  --frame-muted: #45484b;
+  --sheet: #ffffff;
+  --edge: #dfe5e9;
+  --ink: #131416;
+  --muted: #45484b;
+  --faint: #5d5f60;
+  --rule: #eef0f1;
+  --line: #e2e5e8;
+  --raised: #f4f6f8;
+  --control: #cdced1;
+  --accent: #1b6c80;
+  --accent-hover: #155868;
+  --accent-ink: #ffffff;
+  --accent-text: #1b6c80;
+  --soft: #e6f1f4;
+  --ok-bg: #dcfae5;
+  --ok: #0d4a24;
+  --bad-bg: #ffedea;
+  --bad: #8a1c1e;
+  --bad-text: #a01d23;
   --warn-bg: #fff6dd;
-  --warn: #7a5600;
-  --ok-bg: #e7f7ec;
-  --ok: #1d6b35;
+  --warn: #7a4a00;
+  --strip-ok: #b9d6de;
+  --strip-bad: #c4242a;
+  --strip-empty: #eceef0;
+  --scrim: rgba(19, 20, 22, 0.28);
+  --seg-on: #ffffff;
+  --radius-sheet: 16px;
   --radius: 8px;
-  font:
-    14px / 1.45 system-ui,
-    -apple-system,
-    "Segoe UI",
-    sans-serif;
+  --radius-control: 6px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font: 14px / 1.45 var(--sans);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #17161d;
-    --surface: #221f2b;
-    --border: #37334a;
-    --text: #ecebf2;
-    --muted: #a39fb8;
-    --accent: #9b85ff;
-    --accent-text: #120f1d;
-    --danger-bg: #3a1b1d;
-    --danger: #ffb4b0;
+    --frame: #0e1315;
+    --frame-ink: #eef3f5;
+    --frame-muted: #a7b2b8;
+    --sheet: #151b1e;
+    --edge: #222a2e;
+    --ink: #eef3f5;
+    --muted: #b0bbc1;
+    --faint: #98a4aa;
+    --rule: #20272a;
+    --line: #2a3337;
+    --raised: #1c2327;
+    --control: #3a464e;
+    --accent: #4fb3c8;
+    --accent-hover: #6cc3d5;
+    --accent-ink: #06181d;
+    --accent-text: #7fcbdb;
+    --soft: #12313a;
+    --ok-bg: #12301f;
+    --ok: #8de0ab;
+    --bad-bg: #3a1a1c;
+    --bad: #ffb0b2;
+    --bad-text: #ff9a9d;
     --warn-bg: #352a10;
     --warn: #f3d27a;
-    --ok-bg: #16301f;
-    --ok: #9fe0b3;
+    --strip-ok: #2f6773;
+    --strip-bad: #ff6b6f;
+    --strip-empty: #222a2e;
+    --scrim: rgba(0, 0, 0, 0.5);
+    --seg-on: #2e383d;
   }
 }
 
 * {
   box-sizing: border-box;
 }
+/* Chrome's own stylesheet for extension pages sets body to 75% and a system font. */
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
+  font: 14px / 1.45 var(--sans);
+  background: var(--frame);
+  color: var(--ink);
 }
-main {
-  padding: 16px;
-  display: grid;
-  gap: 14px;
-  max-width: 640px;
-}
-h1 {
-  font-size: 16px;
-  margin: 0;
-}
-h2 {
-  font-size: 15px;
-  margin: 0;
-}
+h1,
+h2,
+h3,
 p {
   margin: 0;
+}
+h1 {
+  font-size: 15px;
+  font-weight: 600;
+}
+h2 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+h3 {
+  font-size: 15px;
+  font-weight: 600;
 }
 label {
   display: grid;
   gap: 6px;
-  font-weight: 600;
+  font-weight: 500;
 }
 .muted {
   color: var(--muted);
   font-weight: 400;
 }
+.small {
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+.mono {
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+a {
+  color: var(--accent-text);
+}
+
 textarea,
 input,
 select {
   font: inherit;
   color: inherit;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: var(--sheet);
+  border: 1px solid var(--control);
   border-radius: var(--radius);
   padding: 8px 10px;
   width: 100%;
 }
 textarea {
-  min-height: 88px;
   resize: vertical;
 }
-textarea:focus,
-input:focus,
-select:focus,
-button:focus-visible {
+:is(textarea, input, select, button, a, summary):focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline-offset: 2px;
 }
+
 button {
-  font: inherit;
-  font-weight: 600;
+  white-space: nowrap;
+  font: 500 14px / 1 var(--sans);
+  height: 36px;
+  padding: 0 14px;
   cursor: pointer;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  padding: 7px 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--control);
+  background: var(--sheet);
+  color: var(--ink);
+  transition:
+    transform 140ms var(--ease-out),
+    background-color 140ms ease;
+}
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+@media (hover: hover) and (pointer: fine) {
+  button:hover:not(:disabled) {
+    background: var(--raised);
+  }
+  button.primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
 }
 button.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--accent-text);
+  color: var(--accent-ink);
+}
+button.sm {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 13px;
 }
 button:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 button.link {
   border: none;
   background: none;
+  height: auto;
   padding: 0;
-  color: var(--accent);
+  font-weight: 500;
+  color: var(--accent-text);
 }
+@media (hover: hover) and (pointer: fine) {
+  button.link:hover:not(:disabled) {
+    background: none;
+    text-decoration: underline;
+  }
+}
+.link.danger {
+  color: var(--bad-text);
+}
+
 .row {
   display: flex;
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
 }
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px;
-  display: grid;
-  gap: 8px;
+.row > button {
+  flex: none;
 }
+.between {
+  justify-content: space-between;
+}
+.stack {
+  display: grid;
+  gap: 12px;
+}
+.card {
+  background: var(--sheet);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
 .notice {
   border-radius: var(--radius);
   padding: 10px 12px;
+  line-height: 1.45;
 }
 .notice.error {
-  background: var(--danger-bg);
-  color: var(--danger);
+  background: var(--bad-bg);
+  color: var(--bad);
 }
 .notice.warn {
   background: var(--warn-bg);
@@ -150,18 +265,42 @@ button.link {
   background: var(--ok-bg);
   color: var(--ok);
 }
+.notice p {
+  margin: 0 0 6px;
+}
+
+.pill {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--radius-control);
+  background: var(--raised);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.pill.error {
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+.pill.warn {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+.pill.ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
 .chip {
   display: inline-flex;
   gap: 6px;
   align-items: center;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--raised);
   border-radius: 999px;
   padding: 2px 4px 2px 10px;
-  font:
-    12px / 1.6 ui-monospace,
-    monospace;
+  font: 12.5px / 1.6 var(--mono);
   max-width: 100%;
+  min-width: 0;
 }
 .chip span {
   overflow: hidden;
@@ -170,34 +309,43 @@ button.link {
 }
 .chip button {
   border: none;
+  height: 22px;
   padding: 0 6px;
   background: none;
 }
+
 pre {
   margin: 0;
-  padding: 10px;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  padding: 10px 12px;
+  background: var(--raised);
   border-radius: var(--radius);
   overflow: auto;
-  max-height: 280px;
-  font:
-    12px / 1.5 ui-monospace,
-    monospace;
+  max-height: 260px;
+  font: 12px / 1.5 var(--mono);
   white-space: pre-wrap;
   word-break: break-word;
 }
-ul {
+code {
+  font: 12.5px / 1.4 var(--mono);
+  padding: 1px 5px;
+  background: var(--raised);
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+ul,
+ol {
   margin: 0;
   padding-left: 18px;
 }
+
 .spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid var(--border);
+  flex: none;
+  border: 2px solid var(--strip-ok);
   border-top-color: var(--accent);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.7s linear infinite;
 }
 @keyframes spin {
   to {
@@ -206,86 +354,64 @@ ul {
 }
 @media (prefers-reduced-motion: reduce) {
   .spinner {
-    animation: none;
+    animation-duration: 2s;
+  }
+  button {
+    transition: none;
   }
 }
-.stack {
-  display: grid;
-  gap: 12px;
+
+.switch {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
 }
+.switch input {
+  appearance: none;
+  width: 30px;
+  height: 18px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--control);
+  position: relative;
+  cursor: pointer;
+  flex: none;
+  transition: background-color 160ms ease;
+}
+.switch input::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 160ms var(--ease-out);
+}
+.switch input:checked {
+  background: var(--accent);
+}
+.switch input:checked::after {
+  transform: translateX(12px);
+}
+
 /* The hidden attribute must beat layout rules like label { display: grid }. */
 [hidden] {
   /* biome-ignore lint/complexity/noImportantStyles: see above */
   display: none !important;
 }
-h3 {
-  font-size: 15px;
-  margin: 0;
-}
-.small {
-  font-size: 12px;
-  overflow-wrap: anywhere;
-}
-.between {
-  justify-content: space-between;
-}
-.tabs {
-  display: flex;
-  gap: 4px;
-  border-bottom: 1px solid var(--border);
-}
-.tabs button {
-  border: none;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  background: none;
-  padding: 8px 10px;
-  color: var(--muted);
-}
-.tabs button[aria-selected="true"] {
-  color: var(--text);
-  border-bottom-color: var(--accent);
-}
-.pill {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 1px 8px;
-  border-radius: 999px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--muted);
-}
-.pill.error {
-  background: var(--danger-bg);
-  color: var(--danger);
-  border-color: transparent;
-}
-.pill.warn {
-  background: var(--warn-bg);
-  color: var(--warn);
-  border-color: transparent;
-}
-.segment {
-  padding: 4px 10px;
-  font-weight: 500;
-}
-.segment.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-text);
-}
-.switch {
-  display: inline-flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 6px;
-  font-weight: 500;
-}
-.switch input {
-  width: auto;
-}
-.link.danger {
-  color: var(--danger);
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 fieldset.plain {
@@ -294,40 +420,11 @@ fieldset.plain {
   margin: 0;
   min-width: 0;
 }
-
-code {
-  font:
-    12px / 1.4 ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    monospace;
-  padding: 2px 5px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  overflow-wrap: anywhere;
-}
-
 details > summary {
   cursor: pointer;
   font-weight: 600;
 }
-
 details ol {
   margin: 8px 0 0;
   padding-left: 20px;
-}
-
-.notice p {
-  margin: 0 0 6px;
-}
-
-.row > button {
-  flex: none;
-}
-
-.section {
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
 }

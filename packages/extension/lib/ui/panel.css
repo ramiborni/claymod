@@ -1,0 +1,373 @@
+/* Side panel, layout G: the command on top, the site's mods underneath, results in place. */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.bar {
+  height: 48px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  color: var(--frame-ink);
+}
+.brand {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+.provider {
+  font-size: 12.5px;
+  color: var(--frame-muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sheet {
+  flex: 1;
+  margin: 0 8px 8px;
+  background: var(--sheet);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-sheet);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* The command: one big field, the most important thing in the panel. */
+.command {
+  grid-template-columns: minmax(0, 1fr);
+  margin: 14px 14px 0;
+  border: 1px solid var(--control);
+  border-radius: 14px;
+  padding: 11px 13px;
+  display: grid;
+  gap: 10px;
+  transition: border-color 140ms ease;
+}
+.command:focus-within,
+.command.ready {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.command .chip {
+  overflow: hidden;
+}
+.command textarea {
+  border: 0;
+  padding: 2px 0;
+  min-height: 46px;
+  font-size: 16px;
+  line-height: 1.4;
+  background: transparent;
+  resize: none;
+}
+.command textarea:focus-visible {
+  outline: none;
+}
+.command textarea::placeholder {
+  color: var(--faint);
+}
+.command-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.command-actions .spacer {
+  flex: 1;
+}
+.tries {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 14px 0;
+}
+.try {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: var(--raised);
+  font-size: 12.5px;
+  font-weight: 400;
+}
+
+/* Work in progress and results sit right under the words that started them. */
+.work {
+  padding: 14px 14px 0;
+  display: grid;
+  gap: 12px;
+}
+.steps {
+  display: grid;
+  gap: 9px;
+  list-style: none;
+  padding: 0 2px;
+}
+.step {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+.step .tick {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--accent);
+  display: grid;
+  place-items: center;
+}
+.step .tick::after {
+  content: "";
+  width: 7px;
+  height: 3.5px;
+  margin-top: -2px;
+  border-left: 1.6px solid var(--accent-ink);
+  border-bottom: 1.6px solid var(--accent-ink);
+  transform: rotate(-45deg);
+}
+.step .wait {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+}
+.result {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  display: grid;
+}
+.result-head {
+  padding: 12px 14px 10px;
+  display: grid;
+  gap: 4px;
+}
+.result-head p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.seg {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  background: var(--raised);
+  border-radius: 8px;
+  padding: 3px;
+  margin: 0 14px;
+}
+.seg button {
+  height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+}
+.seg button[aria-pressed="true"] {
+  background: var(--seg-on);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(19, 20, 22, 0.14);
+}
+.changes {
+  margin: 10px 0 0;
+  border-top: 1px solid var(--rule);
+  padding: 9px 14px;
+  display: grid;
+  gap: 5px;
+  font: 12.5px / 1.45 var(--mono);
+  color: var(--faint);
+  list-style: none;
+}
+.changes li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+.changes li span:first-child {
+  overflow-wrap: anywhere;
+}
+.changes li span:last-child {
+  font-family: var(--sans);
+  white-space: nowrap;
+}
+.changes .hit {
+  color: var(--accent-text);
+  background: var(--soft);
+  margin: 0 -14px;
+  padding: 3px 14px;
+}
+.result-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-top: 1px solid var(--rule);
+}
+.result > .notice,
+.result > [data-testid="code"] {
+  margin: 0 14px 12px;
+}
+
+/* Waiting for the user: agent requests, one compact row each. */
+.needs {
+  margin: 14px 14px 0;
+  display: grid;
+  gap: 8px;
+}
+.need {
+  border-radius: 10px;
+  background: var(--raised);
+  padding: 10px 12px;
+  display: grid;
+  gap: 6px;
+}
+.need .who {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+.need .who::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--accent);
+  flex: none;
+}
+
+/* The site you're on and its mods. */
+.site {
+  margin-top: 16px;
+  border-top: 1px solid var(--rule);
+  transition: opacity 200ms ease;
+}
+.site.dim {
+  opacity: 0.45;
+}
+.site-head {
+  padding: 14px 16px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+}
+.site-name {
+  font-size: 17px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.counts {
+  display: flex;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.counts b {
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.counts .bad b {
+  color: var(--bad-text);
+}
+.site > .notice {
+  margin: 0 16px 10px;
+}
+.mod {
+  border-top: 1px solid var(--rule);
+}
+.mod-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+}
+.mod-main {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  justify-items: start;
+}
+button.mod-name {
+  height: auto;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  line-height: 1.35;
+  color: var(--ink);
+}
+@media (hover: hover) and (pointer: fine) {
+  button.mod-name:hover:not(:disabled) {
+    background: none;
+    color: var(--accent-text);
+  }
+}
+.mod-status {
+  font-size: 12px;
+  color: var(--muted);
+}
+.mod-status.bad {
+  color: var(--bad-text);
+}
+.strip {
+  display: flex;
+  gap: 3px;
+}
+.strip i {
+  width: 6px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--strip-ok);
+}
+.strip i.x {
+  background: var(--strip-bad);
+}
+.strip i.e {
+  background: var(--strip-empty);
+}
+.mod-detail {
+  padding: 0 16px 14px;
+  display: grid;
+  gap: 10px;
+}
+.mod-detail .row {
+  gap: 6px 14px;
+}
+.empty {
+  padding: 4px 16px 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.foot {
+  margin-top: auto;
+  padding: 10px 16px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+.foot .row {
+  gap: 14px;
+}

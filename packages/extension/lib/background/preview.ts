@@ -60,6 +60,19 @@ export const preview: RpcHandlers["preview"] = async ({ tabId, draft }) => {
   return { ok: true, value: { css: Boolean(state.css), js, jsHelp } };
 };
 
+/** Before/After for CSS previews: removes or re-inserts the previewed CSS on this tab. */
+export const showPreview: RpcHandlers["showPreview"] = async ({ tabId, visible }) => {
+  const state = await getState(tabId);
+  if (!state?.css) return { ok: false, error: "There is no CSS preview on this tab any more." };
+  try {
+    if (visible) await browser.scripting.insertCSS({ target: { tabId }, css: state.css });
+    else await browser.scripting.removeCSS({ target: { tabId }, css: state.css });
+    return { ok: true, value: null };
+  } catch {
+    return { ok: false, error: NO_ACCESS };
+  }
+};
+
 /** Fully reverts the preview: removes CSS, or reloads the page if JS ran. */
 export const discard: RpcHandlers["discard"] = async ({ tabId }) => {
   const state = await getState(tabId);

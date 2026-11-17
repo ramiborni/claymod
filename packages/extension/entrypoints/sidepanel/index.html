@@ -6,17 +6,16 @@
     <title>Claymod</title>
   </head>
   <body>
-    <main id="app" hidden>
-      <header class="row" style="justify-content: space-between">
-        <h1>Claymod</h1>
-        <div class="row">
-          <span id="provider" class="muted" data-testid="provider"></span>
-          <button id="settings" type="button">Settings</button>
-        </div>
+    <div id="app" class="app" hidden>
+      <header class="bar">
+        <h1 class="brand">
+          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="1" width="18" height="18" rx="5" fill="var(--accent)"/><path d="M5.5 11.5c1.1-3.2 7.9-3.2 9 0" stroke="var(--accent-ink)" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M7.5 14c.8-1.4 4.2-1.4 5 0" stroke="var(--accent-ink)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+          Claymod
+        </h1>
+        <span id="provider" class="provider" data-testid="provider"></span>
       </header>
-      <div id="tabs" class="tabs" role="tablist"></div>
-      <section id="content" aria-live="polite"></section>
-    </main>
+      <main id="content" class="sheet" aria-live="polite"></main>
+    </div>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
