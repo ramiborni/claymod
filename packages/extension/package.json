@@ -1,0 +1,22 @@
+{
+  "name": "@claymod/extension",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Claymod browser extension: describe a change, keep it as a mod.",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "typecheck": "tsc -p tsconfig.json",
+    "e2e": "wxt build && playwright test",
+    "postinstall": "wxt prepare"
+  },
+  "dependencies": {
+    "@claymod/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "wxt": "0.21.5"
+  }
+}

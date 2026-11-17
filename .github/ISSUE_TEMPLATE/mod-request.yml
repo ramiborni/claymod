@@ -1,0 +1,25 @@
+name: Starter mod request
+description: Suggest a mod that should ship with Claymod.
+labels: [mod-request]
+body:
+  - type: input
+    id: site
+    attributes:
+      label: Site
+      placeholder: example.com
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: What should change?
+      description: Describe it the way you would type it into Claymod.
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checks
+      options:
+        - label: The mod only changes how the page looks or behaves for me; it does not scrape data or bypass paywalls or access controls.
+          required: true

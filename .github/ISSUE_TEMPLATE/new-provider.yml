@@ -1,0 +1,30 @@
+name: New model provider
+description: Propose a provider or agent runner.
+labels: [provider]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Provider or agent
+      placeholder: e.g. Gemini API, Mistral, a new local runtime
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: API details
+      description: Link to the official API docs. Is it OpenAI-compatible? Does it allow direct browser (CORS) access?
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Vendor terms
+      options:
+        - label: It works with the user's own API key or local runtime, and does not rely on a consumer subscription login, as the vendor's terms require.
+          required: true
+  - type: dropdown
+    id: help
+    attributes:
+      label: Will you implement it?
+      options: [Yes, Maybe with help, No]

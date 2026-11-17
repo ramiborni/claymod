@@ -1,0 +1,27 @@
+{
+  "name": "claymod",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun --filter @claymod/extension dev",
+    "check": "biome check . && bun --filter '*' typecheck",
+    "check:fix": "biome check --write .",
+    "e2e": "bun --filter @claymod/extension e2e",
+    "build": "bun --filter '*' build",
+    "bridge:compile": "bun --filter @claymod/bridge compile",
+    "changeset": "changeset"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.8",
+    "@changesets/cli": "3.0.3",
+    "@types/bun": "1.4.4",
+    "typescript": "6.0.3"
+  },
+  "engines": {
+    "bun": ">=1.2.0"
+  },
+  "packageManager": "bun@1.4.4"
+}

@@ -1,0 +1,40 @@
+name: Bug report
+description: Something in Claymod does not work as expected.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Ask Claymod to ...
+        3. See ...
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Claymod version, browser and version, OS.
+      placeholder: Claymod 0.1.0, Chrome 142, macOS 15
+    validations:
+      required: true
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Model provider
+      options: [Not relevant, OpenAI-compatible (Ollama, LM Studio, OpenRouter, OpenAI), Anthropic API, Local agent (bridge), Other]
+  - type: textarea
+    id: mod
+    attributes:
+      label: Mod JSON (optional)
+      description: Export the mod and paste it here. Remove anything private first.
+      render: json

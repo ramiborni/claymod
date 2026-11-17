@@ -1,0 +1,14 @@
+{
+  "name": "@claymod/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pure TypeScript core for Claymod: mod schema, prompts, providers, validation, health.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json"
+  }
+}
