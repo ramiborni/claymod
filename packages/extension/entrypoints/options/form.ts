@@ -23,6 +23,8 @@ export interface FormValues {
   auth: AgentAuth;
   /** Google CLIs only: the user read the account-suspension warning for CLI sign-in. */
   riskAccepted: boolean;
+  /** On-device: one of the curated WebLLM models. */
+  onDeviceModel: string;
 }
 
 export const hasSignInRisk = (agent: AgentId) => SIGN_IN_RISK_AGENTS.includes(agent);
@@ -31,7 +33,12 @@ export const hasSignInRisk = (agent: AgentId) => SIGN_IN_RISK_AGENTS.includes(ag
 export const defaultAuth = (agent: AgentId): AgentAuth =>
   hasSignInRisk(agent) ? "api-key" : "cli";
 
-const AGENT_DEFAULTS = { agent: "claude-code", auth: "cli", riskAccepted: false } as const;
+const AGENT_DEFAULTS = {
+  agent: "claude-code",
+  auth: "cli",
+  riskAccepted: false,
+  onDeviceModel: "",
+} as const;
 
 export function toFormValues(config: ProviderConfig | undefined): FormValues {
   if (config?.kind === "anthropic") {
@@ -45,8 +52,21 @@ export function toFormValues(config: ProviderConfig | undefined): FormValues {
       structuredOutput: config.structuredOutput ?? true,
     };
   }
+  if (config?.kind === "on-device") {
+    return {
+      ...AGENT_DEFAULTS,
+      kind: "on-device",
+      baseUrl: "",
+      model: "",
+      apiKey: "",
+      responseFormat: "json_object",
+      structuredOutput: true,
+      onDeviceModel: config.model,
+    };
+  }
   if (config?.kind === "local-agent") {
     return {
+      ...AGENT_DEFAULTS,
       kind: "local-agent",
       baseUrl: "",
       model: config.model ?? "",
@@ -79,6 +99,7 @@ function candidate(values: FormValues): unknown {
       structuredOutput: values.structuredOutput,
     };
   }
+  if (values.kind === "on-device") return { kind: "on-device", model: values.onDeviceModel };
   if (values.kind === "local-agent") {
     return {
       kind: "local-agent",
@@ -119,6 +140,7 @@ export function toConfig(
   }
   const parsed = providerConfigSchema.safeParse(JSON.parse(JSON.stringify(candidate(values))));
   if (parsed.success) return { ok: true, config: parsed.data };
+  if (values.kind === "on-device") return { ok: false, error: "Pick one of the on-device models." };
   if (values.kind === "local-agent") {
     return {
       ok: false,

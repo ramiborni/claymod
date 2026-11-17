@@ -9,6 +9,7 @@
     "./mod": "./src/mod/index.ts",
     "./provider-config": "./src/providers/config.ts",
     "./bridge-protocol": "./src/bridge/protocol.ts",
+    "./on-device": "./src/on-device.ts",
     "./snapshot": "./src/snapshot/index.ts",
     "./zod-config": "./src/zod-config.ts",
     "./schema/mod.schema.json": "./schema/mod.schema.json",

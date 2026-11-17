@@ -5,18 +5,20 @@
   "type": "module",
   "description": "Claymod browser extension: describe a change, keep it as a mod.",
   "scripts": {
-    "dev": "wxt",
-    "build": "wxt build",
-    "zip": "wxt zip",
+    "dev": "bun scripts/webllm-libs.ts && wxt",
+    "build": "bun scripts/webllm-libs.ts && wxt build",
+    "zip": "bun scripts/webllm-libs.ts && wxt zip",
     "typecheck": "tsc -p tsconfig.json && tsc -p cypress/tsconfig.json",
-    "e2e": "wxt build && wxt build --mode e2e && playwright test",
+    "e2e": "bun scripts/webllm-libs.ts && wxt build && wxt build --mode e2e && playwright test",
     "postinstall": "wxt prepare",
-    "cypress": "wxt build && bun scripts/cypress.ts",
-    "cypress:open": "wxt build && bun scripts/cypress.ts open",
-    "screenshots": "wxt build --mode e2e && playwright test screenshots"
+    "cypress": "bun scripts/webllm-libs.ts && wxt build && bun scripts/cypress.ts",
+    "cypress:open": "bun scripts/webllm-libs.ts && wxt build && bun scripts/cypress.ts open",
+    "screenshots": "bun scripts/webllm-libs.ts && wxt build --mode e2e && playwright test screenshots",
+    "webllm-libs": "bun scripts/webllm-libs.ts"
   },
   "dependencies": {
     "@claymod/core": "workspace:*",
+    "@mlc-ai/web-llm": "0.2.89",
     "zod": "4.6.7"
   },
   "devDependencies": {

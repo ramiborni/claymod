@@ -6,6 +6,7 @@ import { getProviderConfig, setProviderConfig } from "@/lib/storage";
 import { setUpAgentsSection } from "./agents-section";
 import { defaultAuth, type FormValues, toConfig, toFormValues } from "./form";
 import { allowLocalApps, setUpLocalAgent, syncLocalAgent } from "./local-agent";
+import { setUpOnDevice } from "./on-device";
 
 useJitlessZod();
 const rpc = createRpcClient();
@@ -27,6 +28,7 @@ function read(): FormValues {
     agent: select("agent").value as AgentId,
     auth: select("auth").value as AgentAuth,
     riskAccepted: input("riskAccepted").checked,
+    onDeviceModel: select("onDeviceModel").value,
   };
 }
 
@@ -41,12 +43,14 @@ function write(values: FormValues) {
   select("auth").value = values.auth;
   input("riskAccepted").checked = values.riskAccepted;
   syncVisibility();
+  if (values.kind === "on-device") void onDevice.load(values.onDeviceModel);
 }
 
 const PLACEHOLDERS: Record<FormValues["kind"], { baseUrl: string; model: string }> = {
   "openai-compatible": { baseUrl: "http://localhost:11434/v1", model: "llama3.1:8b" },
   anthropic: { baseUrl: "https://api.anthropic.com (default)", model: "claude-opus-5-5" },
   "local-agent": { baseUrl: "", model: "CLI default" },
+  "on-device": { baseUrl: "", model: "" },
 };
 
 /** Shows only the fields that apply to the chosen provider (data-for lists the kinds). */
@@ -70,6 +74,7 @@ select("kind").addEventListener("change", () => {
   const kind = select("kind").value as FormValues["kind"];
   if (kind === "anthropic") write(toFormValues({ kind, apiKey: "" }));
   else if (kind === "local-agent") write(toFormValues({ kind, agent: "claude-code", auth: "cli" }));
+  else if (kind === "on-device") write({ ...toFormValues(undefined), kind, onDeviceModel: "" });
   else write(toFormValues(undefined));
 });
 select("agent").addEventListener("change", () => {
@@ -120,6 +125,7 @@ document.getElementById("toggle-key")?.addEventListener("click", (event) => {
   (event.target as HTMLButtonElement).textContent = key.type === "password" ? "Show" : "Hide";
 });
 
+const onDevice = setUpOnDevice({ form, rpc, show });
 setUpLocalAgent({ form, rpc, show, agent: () => select("agent").value as AgentId });
 setUpAgentsSection(rpc);
 write(toFormValues(await getProviderConfig()));

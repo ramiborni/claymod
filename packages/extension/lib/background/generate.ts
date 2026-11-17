@@ -1,7 +1,7 @@
 import { buildCreatePrompt, generateModDraft, snapshotSchema } from "@claymod/core";
 import type { RpcHandlers } from "@/lib/rpc/server";
 import { askPage } from "./page-access";
-import { configuredProvider, NOT_CONFIGURED, providerName } from "./provider";
+import { configuredProvider, NOT_CONFIGURED, promptBudget, providerName } from "./provider";
 
 /** Snapshot the page, ask the configured model for a mod, validate (with one retry). */
 export const generate: RpcHandlers["generate"] = async (
@@ -19,7 +19,11 @@ export const generate: RpcHandlers["generate"] = async (
     return { ok: false, error: "Claymod can only change regular web pages (http or https)." };
   }
 
-  const prompt = buildCreatePrompt({ request, snapshot: snapshot.data });
+  const prompt = buildCreatePrompt({
+    request,
+    snapshot: snapshot.data,
+    budget: promptBudget(configured.config),
+  });
   const result = await generateModDraft({ provider: configured.provider, prompt, signal });
   if (signal.aborted) return { ok: false, error: "Cancelled." };
   if (!result.ok) {

@@ -11,3 +11,9 @@ cypress/videos/
 .DS_Store
 .env
 .env.*
+
+# On-device model libraries, fetched and hash-checked at build time (scripts/webllm-libs.ts)
+packages/extension/public/webllm/
+
+# Working copies created by Claude Code sessions (git worktrees)
+.claude/worktrees/

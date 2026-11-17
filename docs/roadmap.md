@@ -75,16 +75,19 @@ the manual setup is documented.
 
 **Done when:** an integration test passes against a mocked host and the manual demo is documented.
 
-## M6 — On-device models (WebLLM)
+## M6 — On-device models (WebLLM) ✅
 
-- Provider "On-device (WebLLM)": a small model runs in Chrome with WebGPU; no key, no server.
-- A short, curated model list whose WebAssembly libraries ship inside the extension (no code is
-  fetched at runtime); weights are downloaded from Hugging Face on first use and cached.
-- Output constrained to the mod JSON Schema, same validation and retry as other providers.
-- Clear download progress, storage use and "your GPU can't run this" errors.
+- Provider "On this device (WebLLM)": Qwen2.5 Coder 1.5B / 3B / 7B on the GPU via WebGPU, run in
+  the background service worker; no key, no server ([on-device.md](on-device.md)).
+- Model libraries ship inside the extension, fetched at build time and checked against pinned
+  hashes; weights pinned to a Hugging Face commit, config and tokenizer SRI-checked.
+- GPU-aware suggestion that leaves about half the GPU memory free; unload after 3 idle minutes;
+  downloads only from settings, with progress; smaller page budget for small context windows.
+- Decisions: [ADR 0005](decisions/0005-on-device-webllm.md).
 
 **Done when:** the provider is unit-tested with a mocked engine, and an e2e test (or a documented
-manual check where CI has no GPU) creates a mod on-device.
+manual check where CI has no GPU) creates a mod on-device. CI has no GPU, so real inference is
+the manual check in on-device.md; e2e covers the real service worker and settings.
 
 ## M7 — UI polish
 

@@ -148,6 +148,16 @@ runs the agent and returns its raw answer; the extension validates it with the s
 retry as other providers. Agent API keys live in the OS keychain on the bridge side; the
 extension never holds them.
 
+### On-device models (M6)
+
+Provider `on-device` runs a curated WebLLM model in the background service worker
+(`lib/background/on-device-engine.ts`, WebGPU). Core owns the catalog (pinned library hashes,
+Hugging Face revisions, SRI hashes for config and tokenizer), the GPU-aware suggestion
+(`suggestOnDeviceModel`: largest model within half the estimated GPU memory) and the provider.
+The model libraries ship in the extension under `webllm/` (`scripts/webllm-libs.ts` fetches and
+verifies them at build time). Prompts for on-device models use a smaller page budget. See
+[on-device.md](on-device.md) and [ADR 0005](decisions/0005-on-device-webllm.md).
+
 ### Settings storage
 
 `providerConfig` is stored as `{ v: 2, config, apiKey? }`: the API key is encrypted with AES-GCM
@@ -170,6 +180,7 @@ saved before this are encrypted on first read.
 | --- | --- |
 | core | `bun test`, no network; providers tested with recorded responses |
 | extension (UI) | Cypress loads the built side panel and options pages over http with a fake `chrome` API (`cypress/support/fake-chrome.ts`) and scripted background answers, so every UI state (loading, errors, permission refused, …) is tested without a browser extension |
+| extension (on-device) | Cypress fakes `navigator.gpu` for every suggestion state; Playwright checks the real service worker refuses surprise downloads. Real inference is a manual check (CI has no GPU) |
 | extension | `bun test` for pure helpers; Playwright loads the `e2e` build (`.output/chrome-mv3-e2e`) against synthetic fixture pages served by a local mock server that is also a fake OpenAI-compatible model. The `e2e` build mode only adds `host_permissions: http://127.0.0.1/*`, because Playwright can't click the toolbar icon or answer permission prompts |
 | bridge | `bun test`: framing, runners, commands and the dispatcher with spawning mocked; an integration test installs the bridge into a temp home and starts the host the way Chrome does, against fake agent CLIs |
 | extension + bridge | `tests/e2e/bridge.e2e.ts`: the real extension talks to the real bridge over native messaging (Chrome for Testing, temp `HOME`), with a fake `claude`. `tests/e2e/mcp.e2e.ts`: an MCP client starts `claymod-bridge mcp`, reads the page and gets a preview and a save approved in the real side panel |

@@ -40,7 +40,7 @@ for (const scheme of ["light", "dark"] as const) {
     await options.goto(`chrome-extension://${extensionId}/options.html`);
     await options.getByLabel("Provider").selectOption("local-agent");
     await options.getByText("Set up claymod-bridge").click();
-    await options.getByLabel("Model").fill("claude-opus-5-5");
+    await options.getByLabel(/^Model/).fill("claude-opus-5-5");
     await options.getByRole("button", { name: "Test connection" }).click();
     await expect(options.getByTestId("status")).toHaveText("Connected. claude-fake-1 answered.");
     await shot(options, `${prefix}1-local-agent-connected`);

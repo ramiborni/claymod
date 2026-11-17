@@ -7,6 +7,7 @@ import { approveJs, deleteMod, rename, setEnabled, setSitePaused, undo } from ".
 import { generate } from "./generate";
 import { keep } from "./keep";
 import { listMods } from "./list";
+import { onDeviceHandlers, testOnDevice } from "./on-device-handlers";
 import { askPage } from "./page-access";
 import { discard, preview } from "./preview";
 import { providerFor, providerLabel } from "./provider";
@@ -23,6 +24,7 @@ export const handlers: RpcHandlers = {
   },
   async testConnection({ config }, signal) {
     if (config.kind === "local-agent") return testLocalAgent(config, signal);
+    if (config.kind === "on-device") return testOnDevice(config, signal);
     const result = await testConnection(providerFor(config), signal);
     return result.ok ? result : { ok: false, error: result.error.message };
   },
@@ -48,4 +50,5 @@ export const handlers: RpcHandlers = {
   saveRepair,
   ...bridgeHandlers,
   ...agentHandlers,
+  ...onDeviceHandlers,
 };

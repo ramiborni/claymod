@@ -35,7 +35,8 @@ packages/core/       Pure TypeScript. No browser or Node APIs.
                      Mod schema (Zod, single source of truth) + JSON Schema export,
                      snapshot types, prompt builders, ModelProvider interface + adapters
                      (LangChain JS chat models), output validation with one repair retry
-                     (LangGraph JS graph), health-check evaluator.
+                     (LangGraph JS graph), health-check evaluator, on-device model catalog
+                     and GPU-aware suggestion (WebLLM; see docs/on-device.md).
 packages/extension/  WXT, Manifest V3, Chrome first (Firefox later).
                      entrypoints/background  orchestration, providers, storage, userScripts sync
                      entrypoints/content     snapshot, element picker, CSS apply, checks, SPA observer

@@ -11,7 +11,7 @@ import { getLibrary, updateLibrary } from "@/lib/storage";
 import { resetHealth } from "./edit";
 import { askPage } from "./page-access";
 import { clearPreview, preview } from "./preview";
-import { configuredProvider, NOT_CONFIGURED, providerName } from "./provider";
+import { configuredProvider, NOT_CONFIGURED, promptBudget, providerName } from "./provider";
 
 /** Asks the model to fix a mod for the page as it is now, then previews the result. */
 export const repair: RpcHandlers["repair"] = async ({ tabId, modId }, signal) => {
@@ -27,7 +27,12 @@ export const repair: RpcHandlers["repair"] = async ({ tabId, modId }, signal) =>
     return { ok: false, error: "Open a page where this mod runs, then try Repair again." };
 
   const failedSelectors = library.state[modId]?.checkRuns.at(-1)?.failedSelectors ?? [];
-  const prompt = buildRepairPrompt({ mod, snapshot: snapshot.data, failedSelectors });
+  const prompt = buildRepairPrompt({
+    mod,
+    snapshot: snapshot.data,
+    failedSelectors,
+    budget: promptBudget(configured.config),
+  });
   const result = await generateModDraft({ provider: configured.provider, prompt, signal });
   if (signal.aborted) return { ok: false, error: "Cancelled." };
   if (!result.ok) {

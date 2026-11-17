@@ -19,7 +19,7 @@ test("configure a provider, test the connection and save", async ({
   await page.goto(`chrome-extension://${extensionId}/options.html`);
   await page.getByLabel("Provider").selectOption("openai-compatible");
   await page.getByLabel("Base URL").fill(`${server.origin}/v1`);
-  await page.getByLabel("Model").fill("mock-model");
+  await page.getByLabel(/^Model/).fill("mock-model");
 
   await page.getByRole("button", { name: "Test connection" }).click();
   await expect(page.getByTestId("status")).toHaveText("Connected. mock-model answered.");
@@ -47,7 +47,7 @@ test("an unreachable Ollama explains OLLAMA_ORIGINS with this extension's real I
   test.skip(!(await portIsFree(11434)), "Something is listening on Ollama's port on this machine.");
   await page.goto(`chrome-extension://${extensionId}/options.html`);
   await page.getByLabel("Base URL").fill("http://localhost:11434/v1");
-  await page.getByLabel("Model").fill("llama3.1:8b");
+  await page.getByLabel(/^Model/).fill("llama3.1:8b");
   await page.getByRole("button", { name: "Test connection" }).click();
   await expect(page.getByTestId("status")).toContainText(
     `set OLLAMA_ORIGINS=chrome-extension://${extensionId} and restart Ollama.`,
@@ -61,7 +61,7 @@ test("Anthropic settings show only the fields that apply and validate the key", 
 }) => {
   await page.goto(`chrome-extension://${extensionId}/options.html`);
   await page.getByLabel("Provider").selectOption("anthropic");
-  await expect(page.getByLabel("Model")).toHaveValue("claude-opus-5-5");
+  await expect(page.getByLabel(/^Model/)).toHaveValue("claude-opus-5-5");
   await expect(page.getByLabel("JSON mode")).toBeHidden();
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("status")).toHaveText("Enter your Anthropic API key.");

@@ -16,6 +16,10 @@ export interface RpcMethods {
   setAgentAccess: { req: { enabled: boolean }; res: AgentLinkStatus };
   agentRequests: { req: Record<string, never>; res: AgentRequestView[] };
   agentDecision: { req: { requestId: string; outcome: AgentOutcome }; res: null };
+  // M6: on-device models (WebLLM). Progress arrives through storage.session.
+  onDeviceStatus: { req: { model: string }; res: { downloaded: boolean } };
+  onDevicePrepare: { req: { model: string }; res: null };
+  onDeviceDelete: { req: { model: string }; res: null };
   pick: { req: { tabId: number }; res: PickedElement | null };
   cancelPick: { req: { tabId: number }; res: null };
   generate: {
@@ -66,6 +70,14 @@ export type AgentOutcome =
   | { kind: "declined" }
   | { kind: "discarded" }
   | { kind: "saved"; id: string; name: string; version: number };
+
+export interface OnDeviceProgress {
+  model: string;
+  state: "idle" | "loading" | "ready" | "error";
+  /** 0 to 1. */
+  progress: number;
+  text: string;
+}
 
 export interface AgentLinkStatus {
   enabled: boolean;

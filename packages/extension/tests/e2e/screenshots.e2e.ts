@@ -93,7 +93,7 @@ for (const scheme of ["light", "dark"] as const) {
     await page.setViewportSize({ width: 720, height: 820 });
     await page.goto(`chrome-extension://${extensionId}/options.html`);
     await page.getByLabel("Base URL").fill(`${server.origin}/v1`);
-    await page.getByLabel("Model").fill("llama3.1:8b");
+    await page.getByLabel(/^Model/).fill("llama3.1:8b");
     await page.getByRole("button", { name: "Test connection" }).click();
     await expect(page.getByTestId("status")).toContainText("Connected.");
     await shot(page, `${scheme}-10-options`);

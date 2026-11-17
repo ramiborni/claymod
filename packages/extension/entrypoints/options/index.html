@@ -18,6 +18,7 @@
             <option value="openai-compatible">OpenAI-compatible (Ollama, LM Studio, OpenRouter, OpenAI)</option>
             <option value="anthropic">Anthropic API</option>
             <option value="local-agent">Local agent (Claude Code, Codex, Gemini CLI, Antigravity CLI)</option>
+            <option value="on-device">On this device (WebLLM: runs on your GPU, no key)</option>
           </select>
         </label>
 
@@ -75,12 +76,28 @@
           </details>
         </fieldset>
 
+        <fieldset data-for="on-device" class="stack plain">
+          <div class="notice" data-testid="gpu-summary" id="gpu-summary">Checking your GPU…</div>
+          <label>On-device model
+            <select name="onDeviceModel"></select>
+            <span class="muted">Runs entirely on this computer: nothing leaves your device after the one-time download. Smaller models write simpler mods.</span>
+          </label>
+          <div class="stack" id="on-device-files">
+            <div class="row">
+              <button id="on-device-prepare" type="button">Download</button>
+              <button id="on-device-delete" type="button" class="link" hidden>Delete download</button>
+            </div>
+            <progress id="on-device-progress" max="1" value="0" hidden></progress>
+            <span class="muted small" id="on-device-state" data-testid="on-device-state"></span>
+          </div>
+        </fieldset>
+
         <label data-for="openai-compatible anthropic">Base URL
           <input name="baseUrl" type="url" autocomplete="off" spellcheck="false" />
           <span class="muted" data-for="openai-compatible">Usually ends in /v1. Ollama: http://localhost:11434/v1 · LM Studio: http://localhost:1234/v1 · OpenRouter: https://openrouter.ai/api/v1</span>
           <span class="muted" data-for="anthropic">Leave empty to use https://api.anthropic.com.</span>
         </label>
-        <label>Model
+        <label data-for="openai-compatible anthropic local-agent">Model
           <input name="model" autocomplete="off" spellcheck="false" />
           <span class="muted" data-for="local-agent">Optional. Leave empty to use the CLI's default model.</span>
         </label>

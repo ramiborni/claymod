@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { AGENT_MODEL_PATTERN, agentAuthSchema, agentIdSchema } from "../bridge/protocol";
+import { ON_DEVICE_MODEL_IDS } from "./on-device-models";
 
 export const ANTHROPIC_DEFAULT_MODEL = "claude-opus-5-5";
 
@@ -27,6 +28,8 @@ export const providerConfigSchema = z.discriminatedUnion("kind", [
     auth: agentAuthSchema,
     model: z.string().regex(AGENT_MODEL_PATTERN).optional(),
   }),
+  // M6: a curated WebLLM model on the user's GPU (WebGPU). No key, no server.
+  z.strictObject({ kind: z.literal("on-device"), model: z.enum(ON_DEVICE_MODEL_IDS) }),
 ]);
 
 export type ProviderConfig = z.infer<typeof providerConfigSchema>;
