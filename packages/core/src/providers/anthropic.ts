@@ -1,11 +1,12 @@
 import { ChatAnthropic } from "@langchain/anthropic";
 import type { AIMessage } from "@langchain/core/messages";
 import { completeWithLangChain } from "./complete";
+import { ANTHROPIC_DEFAULT_MODEL } from "./config";
 import { toProviderError } from "./errors";
 import type { ModelProvider, ProviderError, ProviderRuntime } from "./types";
 
+export { ANTHROPIC_DEFAULT_MODEL } from "./config";
 export const ANTHROPIC_DEFAULT_BASE_URL = "https://api.anthropic.com";
-export const ANTHROPIC_DEFAULT_MODEL = "claude-opus-5-5";
 const MAX_TOKENS = 16_000;
 const NAME = "Anthropic";
 

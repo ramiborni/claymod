@@ -7,7 +7,15 @@
     "noFallthroughCasesInSwitch": true,
     "exactOptionalPropertyTypes": true,
     "verbatimModuleSyntax": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["bun"]
   },
-  "include": [".wxt/wxt.d.ts", "entrypoints", "tests", "wxt.config.ts", "playwright.config.ts"]
+  "include": [
+    ".wxt/wxt.d.ts",
+    "entrypoints",
+    "lib",
+    "tests",
+    "wxt.config.ts",
+    "playwright.config.ts"
+  ]
 }

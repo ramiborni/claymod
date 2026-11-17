@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { loadRecording, replayFetch } from "../../tests/helpers";
+import { failingFetch, loadRecording, replayFetch } from "../../tests/helpers";
 import { createOpenAICompatibleProvider, type OpenAICompatibleConfig } from "./openai-compatible";
 
 const request = {
@@ -91,5 +91,22 @@ describe("openai-compatible provider (LangChain ChatOpenAICompletions)", () => {
     const { result } = await run("length.json");
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.kind).toBe("truncated");
+  });
+
+  test("a blocked or stopped Ollama (network error) still explains OLLAMA_ORIGINS", async () => {
+    const provider = createOpenAICompatibleProvider({
+      baseUrl: OLLAMA,
+      model: "m",
+      fetch: failingFetch,
+      maxRetries: 0,
+      extensionOrigin: "chrome-extension://abcdefghijklmnop",
+    });
+    const result = await provider.complete(request);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.kind).toBe("network");
+      expect(result.error.message).toContain("Start Ollama");
+      expect(result.error.message).toContain("OLLAMA_ORIGINS=chrome-extension://abcdefghijklmnop");
+    }
   });
 });

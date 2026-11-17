@@ -38,11 +38,19 @@ function looksLikeOllama(baseUrl: string): boolean {
 
 function mapError(error: unknown, config: OpenAICompatibleConfig): ProviderError {
   const mapped = toProviderError(error, NAME, config.baseUrl);
-  if (mapped.status === 403 && looksLikeOllama(config.baseUrl)) {
-    const origin = config.extensionOrigin ?? "chrome-extension://<extension id>";
+  if (!looksLikeOllama(config.baseUrl)) return mapped;
+  const origin = config.extensionOrigin ?? "chrome-extension://<extension id>";
+  if (mapped.status === 403) {
     return {
       ...mapped,
       message: `Ollama blocked the extension. Set OLLAMA_ORIGINS=${origin} and restart Ollama.`,
+    };
+  }
+  // Ollama's 403 for a blocked origin has no CORS headers, so the browser reports a network error.
+  if (mapped.kind === "network") {
+    return {
+      ...mapped,
+      message: `Couldn't reach Ollama at ${new URL(config.baseUrl).origin}. Start Ollama if it isn't running. If it is, it's blocking the extension: set OLLAMA_ORIGINS=${origin} and restart Ollama.`,
     };
   }
   return mapped;

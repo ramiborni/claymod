@@ -1,15 +1,19 @@
 import { defineConfig } from "wxt";
 
-// Permissions stay minimal on purpose. Host access is requested per site when a mod is
-// kept (optional_host_permissions, added in M2), never <all_urls> at install time.
+// Install-time permissions grant no site access. Page access comes from activeTab (toolbar click)
+// or from per-site optional host permissions requested when a mod is kept.
+// The "e2e" build mode alone pre-grants the local fixture server so Playwright, which can't
+// click the toolbar icon or accept permission prompts, can drive the real flows.
 export default defineConfig({
-  manifest: {
+  manifest: ({ mode }) => ({
     name: "Claymod",
     description: "Change how any website looks and works by describing the change.",
-    minimum_chrome_version: "120",
-    permissions: ["storage", "sidePanel"],
+    minimum_chrome_version: "135",
+    permissions: ["storage", "sidePanel", "activeTab", "scripting", "userScripts"],
+    optional_host_permissions: ["http://*/*", "https://*/*"],
+    ...(mode === "e2e" ? { host_permissions: ["http://127.0.0.1/*"] } : {}),
     action: {
       default_title: "Open Claymod",
     },
-  },
+  }),
 });

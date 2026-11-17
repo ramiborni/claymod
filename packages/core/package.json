@@ -6,6 +6,10 @@
   "description": "Pure TypeScript core for Claymod: mod schema, prompts, providers, validation, health.",
   "exports": {
     ".": "./src/index.ts",
+    "./mod": "./src/mod/index.ts",
+    "./provider-config": "./src/providers/config.ts",
+    "./snapshot": "./src/snapshot/index.ts",
+    "./zod-config": "./src/zod-config.ts",
     "./schema/mod.schema.json": "./schema/mod.schema.json",
     "./schema/mod-draft.schema.json": "./schema/mod-draft.schema.json"
   },

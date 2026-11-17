@@ -31,6 +31,16 @@ bun install
 bun dev        # opens Chrome with Claymod loaded
 ```
 
+Or build it with `bun run build` and load `packages/extension/.output/chrome-mv3` as an unpacked
+extension in `chrome://extensions` (Developer mode on).
+
+1. Open Claymod's settings (right-click the icon → Options) and pick a provider: a local Ollama
+   (`http://localhost:11434/v1`, start it with
+   `OLLAMA_ORIGINS=chrome-extension://<your extension id> ollama serve`), any OpenAI-compatible
+   server, or the Anthropic API with your own key. Click **Test connection**, then **Save**.
+2. On any website, click the Claymod icon, describe a change, optionally **Pick element**, and
+   click **Generate**. Check the preview, then **Keep** or **Discard**.
+
 ## Repository layout
 
 | Path | What it is |

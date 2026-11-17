@@ -29,7 +29,7 @@ passing, and a short summary of what changed, how to try it, and what's left.
 **Done when:** unit tests cover the schema, prompts, both adapters (recorded responses), the retry
 and the evaluator, with no network access.
 
-## M2 — Create flow
+## M2 — Create flow ✅
 
 - Side panel: request box, Pick element, Generate, preview with Keep / Discard / View code.
 - Content script: element picker and snapshot builder.

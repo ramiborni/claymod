@@ -17,8 +17,8 @@ that code.
 | Asset | Threat | Mitigation |
 | --- | --- | --- |
 | Pages you visit | A generated or imported mod runs malicious JS | JS runs only via `chrome.userScripts` in the isolated `USER_SCRIPT` world, only on the mod's declared `matches`, and only after you preview it. Imported mods keep JS disabled until you view the code and enable it. |
-| Your browsing | The extension gets broad host access | No host access at install. Access is requested per site when you keep a mod (`optional_host_permissions`). |
-| Extension pages | Code injection into the extension itself | No `eval`, no remote code: everything the extension runs ships in the package. Mod code is never executed in extension pages. |
+| Your browsing | The extension gets broad host access | No host access at install. The current page is read only after you click the Claymod icon (`activeTab`). Lasting access is requested per site when you keep a mod (`optional_host_permissions`). |
+| Extension pages | Code injection into the extension itself | No `eval`, no remote code: everything the extension runs ships in the package. Mod code is never executed in extension pages. Only Claymod's own pages can call the background; content scripts and web pages can't. |
 | Page content | Snapshots leak to third parties | Snapshots go only to the provider you configured. No telemetry, no Claymod server. |
 | API keys | Keys leak or are misused | Keys stay in `chrome.storage.local` and are sent only to the provider they belong to. |
 | Local machine | A website or another app drives the bridge | The native messaging host only accepts the Claymod extension ID (`allowed_origins`). The MCP socket is user-only and needs a random token from `~/.claymod/`. Saving or previewing a mod through MCP needs your confirmation in the side panel. |

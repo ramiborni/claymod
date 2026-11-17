@@ -6,9 +6,53 @@
     <title>Claymod settings</title>
   </head>
   <body>
-    <main id="app">
+    <main>
       <h1>Claymod settings</h1>
-      <p data-testid="options-status">Provider settings arrive in M2.</p>
+      <p class="muted">
+        Claymod calls a model only when you create or repair a mod. Your key is stored in this
+        browser only and is sent only to the provider you choose.
+      </p>
+      <form id="provider-form" class="stack" novalidate>
+        <label>Provider
+          <select name="kind">
+            <option value="openai-compatible">OpenAI-compatible (Ollama, LM Studio, OpenRouter, OpenAI)</option>
+            <option value="anthropic">Anthropic API</option>
+          </select>
+        </label>
+        <label>Base URL
+          <input name="baseUrl" type="url" autocomplete="off" spellcheck="false" />
+          <span class="muted" data-for="openai-compatible">Usually ends in /v1. Ollama: http://localhost:11434/v1 · LM Studio: http://localhost:1234/v1 · OpenRouter: https://openrouter.ai/api/v1</span>
+          <span class="muted" data-for="anthropic">Leave empty to use https://api.anthropic.com.</span>
+        </label>
+        <label>Model
+          <input name="model" autocomplete="off" spellcheck="false" />
+        </label>
+        <label>API key
+          <div class="row" style="flex-wrap: nowrap">
+            <input name="apiKey" type="password" autocomplete="off" spellcheck="false" />
+            <button id="toggle-key" type="button">Show</button>
+          </div>
+          <span class="muted" data-for="openai-compatible">Optional for local servers.</span>
+          <span class="muted" data-for="anthropic">Create one at console.anthropic.com. Claymod uses API keys only, never a claude.ai login.</span>
+        </label>
+        <label data-for="openai-compatible">JSON mode
+          <select name="responseFormat">
+            <option value="json_object">JSON object (works with most servers)</option>
+            <option value="json_schema">JSON schema (stricter, fewer servers support it)</option>
+            <option value="none">None (prompt only)</option>
+          </select>
+        </label>
+        <label data-for="anthropic" class="row" style="font-weight: 400">
+          <input name="structuredOutput" type="checkbox" style="width: auto" />
+          Use structured outputs (recommended)
+        </label>
+        <div class="row">
+          <button class="primary" type="submit">Save</button>
+          <button id="test" type="button">Test connection</button>
+        </div>
+        <div id="status" role="status" hidden data-testid="status"></div>
+      </form>
     </main>
+    <script type="module" src="./main.ts"></script>
   </body>
 </html>

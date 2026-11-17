@@ -1,5 +1,7 @@
 import * as z from "zod";
 
+export const ANTHROPIC_DEFAULT_MODEL = "claude-opus-5-5";
+
 /** Provider settings as stored by the options page. */
 export const providerConfigSchema = z.discriminatedUnion("kind", [
   z.strictObject({

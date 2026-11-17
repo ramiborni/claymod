@@ -60,8 +60,35 @@ WXT, Manifest V3, Chrome first.
 | `sidepanel` | Create, preview and manage mods |
 | `options` | Provider settings |
 
-The manifest asks only for `storage` and `sidePanel` at install. Host access is requested per site
-when a mod is kept.
+### Permissions
+
+| Permission | Why |
+| --- | --- |
+| `storage` | Mods and provider settings in `chrome.storage.local`; previews in `storage.session` |
+| `sidePanel` | The main UI |
+| `activeTab` | Read and preview the page you're on, after you click the Claymod icon |
+| `scripting` | Inject the picker/snapshot content script and preview CSS on that tab |
+| `userScripts` | Preview (and, from M3, run) generated JS in the isolated `USER_SCRIPT` world |
+| `optional_host_permissions: http://*/*, https://*/*` | Nothing at install; **Keep** asks for the mod's sites only |
+
+Clicking the toolbar icon opens the side panel from `action.onClicked`, so the click grants
+`activeTab` for the current page. If you navigate to another site, click the icon again (or keep
+a mod for that site, which grants lasting access).
+
+### Create flow (M2)
+
+1. **Pick element** (optional): the background injects `content-scripts/content.js` with
+   `chrome.scripting` (it is never declared in the manifest) and the page shows a hover
+   highlight; click picks, Esc cancels. The picker builds a short, stable selector.
+2. **Generate**: the content script walks the DOM into an outline (core renders it, ~30 KB cap);
+   the background runs `generateModDraft` with the configured provider.
+3. **Preview**: CSS via `scripting.insertCSS` on that tab only; JS via `userScripts.execute`
+   in the `USER_SCRIPT` world when user scripts are enabled (otherwise the panel explains how).
+4. **Keep** asks for host permission for the mod's `matches` (from the click's user gesture),
+   then saves the mod. **Discard** removes the CSS, or reloads the tab if JS ran.
+
+Pages talk to the background over one long-lived port (`lib/rpc`) with a heartbeat, so the MV3
+service worker stays alive during long model calls. Only Claymod's own pages may connect.
 
 ### `packages/bridge`
 
@@ -84,5 +111,5 @@ Local agents plug in through the `AgentRunner` interface.
 | Package | How |
 | --- | --- |
 | core | `bun test`, no network; providers tested with recorded responses |
-| extension | Playwright loads the built extension (`.output/chrome-mv3`) against synthetic fixture pages |
+| extension | `bun test` for pure helpers; Playwright loads the `e2e` build (`.output/chrome-mv3-e2e`) against synthetic fixture pages served by a local mock server that is also a fake OpenAI-compatible model. The `e2e` build mode only adds `host_permissions: http://127.0.0.1/*`, because Playwright can't click the toolbar icon or answer permission prompts |
 | bridge | Unit tests for framing and runners, with process spawning mocked |
