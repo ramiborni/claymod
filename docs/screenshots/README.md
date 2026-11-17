@@ -27,6 +27,16 @@ Captured with the real `claymod-bridge` and a fake agent CLI.
 | Preview made by a local agent | ![](light-m4-4-panel-preview-local-agent.png) | ![](dark-m4-4-panel-preview-local-agent.png) |
 | Bridge not installed | ![](light-m4-5-bridge-missing.png) | ![](dark-m4-5-bridge-missing.png) |
 
+## Agents over MCP (M5)
+
+Captured with a real MCP client, `claymod-bridge mcp` and the real bridge.
+
+| | Light | Dark |
+| --- | --- | --- |
+| Settings: agents switched on | ![](light-m5-1-settings-agents.png) | ![](dark-m5-1-settings-agents.png) |
+| An agent asks to save a mod | ![](light-m5-2-panel-agent-request.png) | ![](dark-m5-2-panel-agent-request.png) |
+| Previewing the agent's mod | ![](light-m5-3-panel-agent-preview.png) | ![](dark-m5-3-panel-agent-preview.png) |
+
 ## Mod manager (M3)
 
 | | Light | Dark |
