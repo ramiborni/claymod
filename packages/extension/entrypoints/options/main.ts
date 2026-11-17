@@ -3,6 +3,7 @@ import type { AgentAuth, AgentId } from "@claymod/core/bridge-protocol";
 import { useJitlessZod } from "@claymod/core/zod-config";
 import { createRpcClient } from "@/lib/rpc/client";
 import { getProviderConfig, setProviderConfig } from "@/lib/storage";
+import { setUpAgentsSection } from "./agents-section";
 import { defaultAuth, type FormValues, toConfig, toFormValues } from "./form";
 import { allowLocalApps, setUpLocalAgent, syncLocalAgent } from "./local-agent";
 
@@ -120,4 +121,5 @@ document.getElementById("toggle-key")?.addEventListener("click", (event) => {
 });
 
 setUpLocalAgent({ form, rpc, show, agent: () => select("agent").value as AgentId });
+setUpAgentsSection(rpc);
 write(toFormValues(await getProviderConfig()));

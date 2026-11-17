@@ -66,16 +66,37 @@ fixture triggering needs-repair, and imports requiring review.
 **Done when:** framing is unit-tested, an integration test runs against a fake agent binary, and
 the manual setup is documented.
 
-## M5 — MCP: agents drive Claymod
+## M5 — MCP: agents drive Claymod ✅
 
 - `claymod-bridge mcp` with `get_active_page`, `list_mods`, `preview_mod`, `save_mod`,
   `get_mod_status`, reaching the host over a user-only local socket with a random token.
 - `preview_mod` and `save_mod` need confirmation in the side panel.
-- Docs for Claude Code, Codex and OpenCode.
+- Docs for Claude Code, Codex and OpenCode ([mcp.md](mcp.md)); opt-in switch in settings.
 
 **Done when:** an integration test passes against a mocked host and the manual demo is documented.
 
-## M6 — Starter mods and releases
+## M6 — On-device models (WebLLM)
+
+- Provider "On-device (WebLLM)": a small model runs in Chrome with WebGPU; no key, no server.
+- A short, curated model list whose WebAssembly libraries ship inside the extension (no code is
+  fetched at runtime); weights are downloaded from Hugging Face on first use and cached.
+- Output constrained to the mod JSON Schema, same validation and retry as other providers.
+- Clear download progress, storage use and "your GPU can't run this" errors.
+
+**Done when:** the provider is unit-tested with a mocked engine, and an e2e test (or a documented
+manual check where CI has no GPU) creates a mod on-device.
+
+## M7 — UI polish
+
+- Every screen (side panel, mod manager, settings, approvals, errors, empty and loading states)
+  reviewed in light and dark against the frontend, design-engineering, animation and taste
+  skills; fixed, re-captured and reviewed again, round after round, until a pass finds nothing
+  material.
+
+**Done when:** a review round finds no material issues, Cypress and e2e stay green, and the
+screenshots in docs/screenshots show the result.
+
+## M8 — Starter mods and releases
 
 - Ten starter mods tested on synthetic fixtures.
 - `release.yml`: Changesets version PR → tag → extension zip + bridge binaries → GitHub Release

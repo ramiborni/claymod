@@ -1,8 +1,9 @@
 import { isBroadPattern } from "@/lib/origins";
 import { h } from "@/lib/ui/dom";
-import type { PanelState, PreviewScreen } from "./state";
+import { type AgentRequestActions, renderAgentRequests } from "./agent-view";
+import type { PanelState, PreviewScreen, Purpose } from "./state";
 
-export interface CreateActions {
+export interface CreateActions extends AgentRequestActions {
   setRequest(value: string): void;
   pick(): void;
   cancelPick(): void;
@@ -86,19 +87,27 @@ export function codeView(css: string | undefined, js: string | undefined): Node 
   );
 }
 
+function purposeLine(purpose: Purpose): string | undefined {
+  if (purpose.kind === "repair") return `Repaired version of “${purpose.modName}”`;
+  if (purpose.kind !== "agent") return undefined;
+  return purpose.replaces
+    ? `Proposed by ${purpose.client}: new version of “${purpose.replaces.name}”`
+    : `Proposed by ${purpose.client}`;
+}
+
+function saveLabel(purpose: Purpose): string {
+  if (purpose.kind === "repair") return "Save repair";
+  if (purpose.kind === "agent" && purpose.replaces) return "Save new version";
+  return "Keep";
+}
+
 function preview(screen: PreviewScreen, state: PanelState, actions: CreateActions): Node {
   const { draft } = screen.generated;
-  const repairing = screen.purpose.kind === "repair";
-  const saveLabel = repairing ? "Save repair" : "Keep";
+  const line = purposeLine(screen.purpose);
   return h(
     "div",
     { class: "card", "data-testid": "preview" },
-    repairing &&
-      h(
-        "p",
-        { class: "muted" },
-        `Repaired version of “${screen.purpose.kind === "repair" ? screen.purpose.modName : ""}”`,
-      ),
+    line && h("p", { class: "muted" }, line),
     h("h2", {}, draft.name),
     h("p", {}, draft.description),
     h("p", { class: "muted" }, "Previewing on this tab only. Runs on:"),
@@ -128,7 +137,7 @@ function preview(screen: PreviewScreen, state: PanelState, actions: CreateAction
       h(
         "button",
         { class: "primary", disabled: screen.saving, onclick: actions.save },
-        screen.saving ? "Saving…" : saveLabel,
+        screen.saving ? "Saving…" : saveLabel(screen.purpose),
       ),
       h("button", { disabled: screen.saving, onclick: actions.discard }, "Discard"),
       h(
@@ -156,6 +165,20 @@ function busy(text: string, cancel: () => void): Node {
 }
 
 export function renderCreate(state: PanelState, actions: CreateActions): Node {
+  const screen = state.screen;
+  const reviewing =
+    screen.name === "preview" && screen.purpose.kind === "agent"
+      ? screen.purpose.requestId
+      : undefined;
+  return h(
+    "div",
+    { class: "stack" },
+    renderAgentRequests(state.agentRequests, actions, reviewing),
+    renderScreen(state, actions),
+  );
+}
+
+function renderScreen(state: PanelState, actions: CreateActions): Node {
   const screen = state.screen;
   switch (screen.name) {
     case "compose":

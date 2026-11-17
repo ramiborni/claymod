@@ -75,6 +75,7 @@ retry) as every other provider, and you preview the mod before keeping it.
 | `claymod-bridge install --extension-id <id> [--browser chrome\|chromium\|chrome-for-testing\|all]` | Registers the native messaging host for Claymod only, and saves the current `PATH` |
 | `claymod-bridge doctor` | Checks the registration, the keychain, which agents are found and signed in, and which keys are saved (never prints keys) |
 | `claymod-bridge keys list \| set <agent> \| delete <agent>` | Manages agent API keys in the system keychain |
+| `claymod-bridge mcp` | MCP server so agents can read the page and propose mods you approve ([mcp.md](mcp.md)) |
 | `claymod-bridge uninstall` | Removes the registration, the bridge settings and the saved keys |
 | `claymod-bridge host` | The native messaging host; Chrome starts it, you don't |
 

@@ -1,5 +1,5 @@
 import { originsForMatches } from "@/lib/origins";
-import type { GeneratedDraft } from "@/lib/rpc/protocol";
+import type { AgentRequestView, GeneratedDraft } from "@/lib/rpc/protocol";
 import type { PanelContext } from "./context";
 import type { PreviewScreen, Purpose } from "./state";
 import { targetTabId } from "./target-tab";
@@ -53,23 +53,62 @@ export function createActions(ctx: PanelContext): CreateActions & {
       generated: screen.generated,
       jsReviewed: screen.jsReviewed,
     };
-    const message =
-      screen.purpose.kind === "repair"
-        ? await ctx.rpc.call("saveRepair", { ...common, modId: screen.purpose.modId }).then((r) =>
-            r.ok
-              ? {
-                  ok: true as const,
-                  text: `Repaired “${r.value.name}” (now version ${r.value.version}).`,
-                }
-              : r,
-          )
-        : await ctx.rpc
-            .call("keep", common)
-            .then((r) => (r.ok ? { ok: true as const, text: `Saved “${r.value.name}”.` } : r));
+    const purpose = screen.purpose;
+    const replacing =
+      purpose.kind === "repair"
+        ? { id: purpose.modId, verb: "Repaired" }
+        : purpose.kind === "agent" && purpose.replaces
+          ? { id: purpose.replaces.id, verb: "Updated" }
+          : undefined;
+    const message = replacing
+      ? await ctx.rpc.call("saveRepair", { ...common, modId: replacing.id }).then((r) =>
+          r.ok
+            ? {
+                ok: true as const,
+                saved: { id: replacing.id, ...r.value },
+                text: `${replacing.verb} “${r.value.name}” (now version ${r.value.version}).`,
+              }
+            : r,
+        )
+      : await ctx.rpc.call("keep", common).then((r) =>
+          r.ok
+            ? {
+                ok: true as const,
+                saved: { ...r.value, version: 1 },
+                text: `Saved “${r.value.name}”.`,
+              }
+            : r,
+        );
     if (!message.ok)
       return ctx.update({ screen: { ...screen, saving: false }, saveError: message.error });
+    if (purpose.kind === "agent" && purpose.tool === "save_mod") {
+      void ctx.rpc.call("agentDecision", {
+        requestId: purpose.requestId,
+        outcome: { kind: "saved", ...message.saved },
+      });
+    }
     ctx.update({ screen: { name: "saved", message: message.text }, request: "", picked: null });
     void ctx.refreshMods();
+  }
+
+  async function reviewAgentRequest(request: AgentRequestView) {
+    const previewed = await ctx.rpc.call("preview", { tabId: request.tabId, draft: request.draft });
+    if (!previewed.ok) return fail(previewed.error);
+    if (request.tool === "preview_mod") {
+      void ctx.rpc.call("agentDecision", { requestId: request.id, outcome: { kind: "previewed" } });
+    }
+    showPreview(
+      {
+        kind: "agent",
+        requestId: request.id,
+        tool: request.tool,
+        client: request.client,
+        replaces: request.replaces,
+      },
+      request.tabId,
+      { draft: request.draft, provider: `mcp:${request.client}`, model: "agent" },
+      previewed.value,
+    );
   }
 
   return {
@@ -144,9 +183,18 @@ export function createActions(ctx: PanelContext): CreateActions & {
         () => save(screen, false),
       );
     },
+    reviewAgentRequest: (request) => void reviewAgentRequest(request),
+    declineAgentRequest: (request) =>
+      void ctx.rpc.call("agentDecision", { requestId: request.id, outcome: { kind: "declined" } }),
     discard: () => {
       const screen = ctx.get().screen;
       if (screen.name !== "preview") return;
+      if (screen.purpose.kind === "agent" && screen.purpose.tool === "save_mod") {
+        void ctx.rpc.call("agentDecision", {
+          requestId: screen.purpose.requestId,
+          outcome: { kind: "discarded" },
+        });
+      }
       void ctx.rpc
         .call("discard", { tabId: screen.tabId })
         .then(() => ctx.update({ screen: { name: "compose" }, saveError: undefined }));

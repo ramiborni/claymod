@@ -22,10 +22,10 @@ describe("run", () => {
     expect(context.stderr.join("\n")).toContain("--help");
   });
 
-  test("mcp reports the milestone it arrives in", async () => {
+  test("mcp --help explains how to add it to an agent", async () => {
     const context = testContext();
-    expect(await run(["mcp"], context)).toBe(1);
-    expect(context.stderr.join("\n")).toContain("M5");
+    expect(await run(["mcp", "--help"], context)).toBe(0);
+    expect(context.stdout.join("\n")).toContain("claude mcp add claymod -- claymod-bridge mcp");
   });
 
   test("Chrome's origin argument starts the host, which refuses unknown extensions", async () => {

@@ -1,4 +1,5 @@
 import { useJitlessZod } from "@claymod/core";
+import { syncAgentLink } from "@/lib/background/agent-link";
 import { isCheckReport, recordChecks } from "@/lib/background/checks";
 import { handlers } from "@/lib/background/handlers";
 import { syncRegistrations } from "@/lib/background/sync";
@@ -28,10 +29,16 @@ export default defineBackground(() => {
     if (area !== "local") return;
     if (KEYS.mods in changes || KEYS.modState in changes || KEYS.pausedSites in changes)
       void syncRegistrations();
+    if (KEYS.agentAccess in changes) void syncAgentLink();
   });
-  browser.permissions.onAdded.addListener(() => void syncRegistrations(true));
+  browser.permissions.onAdded.addListener(() => {
+    void syncRegistrations(true);
+    void syncAgentLink();
+  });
   browser.permissions.onRemoved.addListener(() => void syncRegistrations(true));
   browser.runtime.onInstalled.addListener(() => void syncRegistrations(true));
   browser.runtime.onStartup.addListener(() => void syncRegistrations(true));
   void syncRegistrations(true);
+  // M5: reopen the agent link (MCP) if the user turned it on.
+  void syncAgentLink();
 });

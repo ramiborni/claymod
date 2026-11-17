@@ -42,7 +42,8 @@ packages/extension/  WXT, Manifest V3, Chrome first (Firefox later).
                      entrypoints/sidepanel   create / preview / manage UI
                      entrypoints/options     provider settings
 packages/bridge/     Bun CLI, compiled with `bun build --compile`.
-                     Commands: install, uninstall, doctor, keys, host (native messaging), mcp (M5).
+                     Commands: install, uninstall, doctor, keys, host (native messaging),
+                     mcp (MCP stdio server, official SDK; see docs/mcp.md).
                      AgentRunner interface; runners: claude-code, codex, gemini, antigravity.
                      Agent API keys in the OS keychain (Bun.secrets). See docs/bridge.md.
 mods/                Starter mods as JSON, validated in CI.

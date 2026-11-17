@@ -1,4 +1,7 @@
 import * as z from "zod";
+import { agentResultSchema } from "./agent-tools";
+
+export * from "./agent-tools";
 
 /**
  * Messages between the extension and claymod-bridge over Chrome native messaging.
@@ -57,6 +60,14 @@ export const bridgeRequestSchema = z.discriminatedUnion("type", [
     key: z.string().min(1).max(4096),
   }),
   z.strictObject({ type: z.literal("deleteKey"), id: requestId, agent: agentIdSchema }),
+  // M5: keep this host running as the link agents reach through `claymod-bridge mcp`.
+  z.strictObject({ type: z.literal("serve"), id: requestId }),
+  z.strictObject({
+    type: z.literal("agentResult"),
+    id: requestId,
+    callId: requestId,
+    result: agentResultSchema,
+  }),
 ]);
 export type BridgeRequest = z.infer<typeof bridgeRequestSchema>;
 export type BridgeRequestType = BridgeRequest["type"];
@@ -86,6 +97,8 @@ export const generateResultSchema = z.strictObject({
 });
 export type GenerateResult = z.infer<typeof generateResultSchema>;
 
+export const serveResultSchema = z.strictObject({ socket: z.string() });
+
 export const BRIDGE_ERROR_KINDS = [
   "bad-request",
   "agent-not-found",
@@ -95,6 +108,7 @@ export const BRIDGE_ERROR_KINDS = [
   "agent-failed",
   "too-large",
   "keychain",
+  "link",
 ] as const;
 export const bridgeErrorSchema = z.strictObject({
   kind: z.enum(BRIDGE_ERROR_KINDS),

@@ -1,8 +1,22 @@
 import type { PickedElement } from "@claymod/core/snapshot";
-import type { GeneratedDraft, ManagerView, PreviewResult } from "@/lib/rpc/protocol";
+import type {
+  AgentRequestView,
+  GeneratedDraft,
+  ManagerView,
+  PreviewResult,
+} from "@/lib/rpc/protocol";
 
-/** Create a new mod, or repair an existing one. Both end in the same preview. */
-export type Purpose = { kind: "create" } | { kind: "repair"; modId: string; modName: string };
+/** Create a new mod, repair one, or review an agent's proposal. All end in the same preview. */
+export type Purpose =
+  | { kind: "create" }
+  | { kind: "repair"; modId: string; modName: string }
+  | {
+      kind: "agent";
+      requestId: string;
+      tool: AgentRequestView["tool"];
+      client: string;
+      replaces?: { id: string; name: string } | undefined;
+    };
 
 export interface PreviewScreen {
   name: "preview";
@@ -46,6 +60,8 @@ export interface PanelState {
   /** Shown above the preview when saving fails, so the preview stays usable. */
   saveError?: string | undefined;
   manager: ManagerUi;
+  /** Previews and saves agents asked for (MCP), waiting for the user. */
+  agentRequests: AgentRequestView[];
 }
 
 export const initialState: PanelState = {
@@ -54,6 +70,7 @@ export const initialState: PanelState = {
   request: "",
   picked: null,
   provider: { configured: false, label: "" },
+  agentRequests: [],
   manager: {
     view: null,
     filter: "site",

@@ -1,6 +1,7 @@
 import { testConnection } from "@claymod/core";
 import type { RpcHandlers } from "@/lib/rpc/server";
 import { getProviderConfig } from "@/lib/storage";
+import { agentHandlers } from "./agent-handlers";
 import { bridgeHandlers, testLocalAgent } from "./bridge-handlers";
 import { approveJs, deleteMod, rename, setEnabled, setSitePaused, undo } from "./edit";
 import { generate } from "./generate";
@@ -46,4 +47,5 @@ export const handlers: RpcHandlers = {
   repair,
   saveRepair,
   ...bridgeHandlers,
+  ...agentHandlers,
 };

@@ -38,6 +38,7 @@ const KIND_BY_BRIDGE_ERROR: Record<BridgeError["kind"], ProviderErrorKind> = {
   "agent-failed": "server",
   "too-large": "truncated",
   keychain: "auth",
+  link: "network",
 };
 
 export function fromBridgeError(error: BridgeError): ProviderError {

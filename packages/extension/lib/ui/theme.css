@@ -325,3 +325,9 @@ details ol {
 .row > button {
   flex: none;
 }
+
+.section {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}

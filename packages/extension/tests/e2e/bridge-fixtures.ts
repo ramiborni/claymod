@@ -4,7 +4,7 @@
  * Chromium gets a throwaway HOME, so `claymod-bridge install` registers it there, never in the
  * real profile.
  */
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   chmodSync,
@@ -24,12 +24,15 @@ import { type MockServer, startMockServer } from "./mock-server";
 
 export { extensionPath };
 
-const bridgeRoot = path.resolve(import.meta.dirname, "../../../bridge");
+export const bridgeRoot = path.resolve(import.meta.dirname, "../../../bridge");
 const CLI = path.join(bridgeRoot, "src/cli.ts");
 const FAKE_AGENT = path.join(bridgeRoot, "tests/fixtures/fake-agent.ts");
 // Playwright runs on Node; the bridge and the fake agent run on Bun. Its "chromium" is Chrome for
 // Testing, which reads native messaging hosts from its own folder since Chrome 146.
-const BUN = spawnSync("bun", ["-e", "process.stdout.write(process.execPath)"]).stdout.toString();
+export const BUN = spawnSync("bun", [
+  "-e",
+  "process.stdout.write(process.execPath)",
+]).stdout.toString();
 
 /** Chrome derives an unpacked extension's ID from its absolute path. */
 export function unpackedExtensionId(dir: string): string {
@@ -118,3 +121,32 @@ export const calls = (bin: string) =>
       (line) =>
         JSON.parse(line) as { args: string[]; stdin: string; env: Record<string, string | null> },
     );
+
+/** Calls one MCP tool as an agent would; resolves when the tool answers. */
+export function agentCall(
+  home: string,
+  tool: string,
+  args: unknown,
+): Promise<{ isError: boolean; text: string }> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(
+      BUN,
+      [path.join(bridgeRoot, "tests/fixtures/mcp-call.ts"), tool, JSON.stringify(args)],
+      {
+        env: { HOME: home, PATH: "/usr/bin:/bin", CLAYMOD_BRIDGE_NO_KEYCHAIN: "1" },
+      },
+    );
+    let out = "";
+    child.stdout.on("data", (chunk) => {
+      out += chunk;
+    });
+    child.on("error", reject);
+    child.on("close", () => {
+      try {
+        resolve(JSON.parse(out));
+      } catch {
+        reject(new Error(`no answer from ${tool}: ${out}`));
+      }
+    });
+  });
+}

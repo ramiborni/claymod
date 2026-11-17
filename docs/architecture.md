@@ -125,7 +125,7 @@ service worker stays alive during long model calls. Only Claymod's own pages may
 
 A Bun CLI compiled into a single binary (macOS arm64/x64, Linux x64, Windows x64). It is
 optional: the extension works fully without it. Commands: `install`, `uninstall`, `doctor`,
-`keys`, `host` (native messaging) and, from M5, `mcp`. Setup and troubleshooting:
+`keys`, `host` (native messaging) and `mcp` (MCP stdio server, [mcp.md](mcp.md)). Setup and troubleshooting:
 [bridge.md](bridge.md); decisions: [ADR 0004](decisions/0004-local-agents.md).
 
 | Folder | What's inside |
@@ -133,6 +133,14 @@ optional: the extension works fully without it. Commands: `install`, `uninstall`
 | `host/` | Native messaging framing (32-bit native-endian length + UTF-8 JSON, 1 MiB out / 64 MiB in), the host loop (concurrent requests, stops agents when Chrome closes the port) and the dispatcher (`hello`, `generate`, `cancel`, `setKey`, `deleteKey`, protocol in `@claymod/core/bridge-protocol`) |
 | `runners/` | One `AgentRunner` per CLI (`claude-code`, `codex`, `gemini`, `antigravity`): pure argument/env/file building and output parsing; `run-agent.ts` runs one in a fresh temp folder with a timeout |
 | `commands/` | `install` / `uninstall` (manifest per browser, Windows registry, dev launcher), `doctor`, `keys` |
+
+Agents (MCP, M5): with **Let agents use Claymod** on, `lib/background/agent-link.ts` keeps one
+native port open and sends `serve`; the host then listens on a user-only socket (`mcp.sock` +
+`mcp-token` in Claymod's settings folder, a named pipe on Windows). `claymod-bridge mcp` (an MCP
+stdio server built on the official SDK, `src/mcp/`) forwards each tool call over that socket;
+the host pushes it to the extension as `agentCall`, and `lib/background/agent-tools.ts` answers
+with `agentResult`. `preview_mod` and `save_mod` wait in `agent-requests.ts` until the user
+decides in the side panel, which reuses the normal preview / Keep flow. See [mcp.md](mcp.md).
 
 Local agent flow: the background's `local-agent` provider (`createLocalAgentProvider`, core)
 sends `generate` over `chrome.runtime.connectNative` (`lib/background/bridge.ts`); the bridge
@@ -164,4 +172,4 @@ saved before this are encrypted on first read.
 | extension (UI) | Cypress loads the built side panel and options pages over http with a fake `chrome` API (`cypress/support/fake-chrome.ts`) and scripted background answers, so every UI state (loading, errors, permission refused, …) is tested without a browser extension |
 | extension | `bun test` for pure helpers; Playwright loads the `e2e` build (`.output/chrome-mv3-e2e`) against synthetic fixture pages served by a local mock server that is also a fake OpenAI-compatible model. The `e2e` build mode only adds `host_permissions: http://127.0.0.1/*`, because Playwright can't click the toolbar icon or answer permission prompts |
 | bridge | `bun test`: framing, runners, commands and the dispatcher with spawning mocked; an integration test installs the bridge into a temp home and starts the host the way Chrome does, against fake agent CLIs |
-| extension + bridge | `tests/e2e/bridge.e2e.ts`: the real extension talks to the real bridge over native messaging (Chrome for Testing, temp `HOME`), with a fake `claude` |
+| extension + bridge | `tests/e2e/bridge.e2e.ts`: the real extension talks to the real bridge over native messaging (Chrome for Testing, temp `HOME`), with a fake `claude`. `tests/e2e/mcp.e2e.ts`: an MCP client starts `claymod-bridge mcp`, reads the page and gets a preview and a save approved in the real side panel |

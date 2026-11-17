@@ -3,6 +3,7 @@ import { AGENT_LABELS } from "@claymod/core/bridge-protocol";
 import { readConfig } from "../config";
 import type { Command, CommandContext } from "../context";
 import { agentEnv } from "../env";
+import { linkPaths } from "../mcp/link-paths";
 import { BROWSER_LABELS, browsersFor, configDir, manifestPath } from "../paths";
 import { RUNNERS } from "../runners";
 import { agentSearchPath } from "../runners/run-agent";
@@ -113,6 +114,12 @@ export const doctor: Command = async (args, context) => {
   const registered = registration(context);
   const agentReport = await agents(context, config?.path);
   for (const line of [...registered.lines, "", ...agentReport.lines]) context.out(line);
+  const link = linkPaths(context);
+  context.out(
+    existsSync(link.token)
+      ? `✓ Agents (MCP): Claymod is listening (${link.socket})`
+      : "– Agents (MCP): off. Turn on “Let agents use Claymod (MCP)” in Claymod settings to use 'claymod-bridge mcp'.",
+  );
   if (!config?.path)
     context.out(
       "! No saved PATH: run 'claymod-bridge install' from a terminal where your agents work.",

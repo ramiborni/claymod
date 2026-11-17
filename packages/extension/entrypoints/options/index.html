@@ -109,6 +109,32 @@
         </div>
         <div id="status" role="status" hidden data-testid="status"></div>
       </form>
+
+      <section class="stack section" aria-labelledby="agents-heading">
+        <h2 id="agents-heading">Agents (MCP)</h2>
+        <p class="muted">
+          Let an AI agent you already use (Claude Code, Codex, OpenCode…) read the page you have
+          open and propose mods. You approve every preview and save in Claymod's side panel.
+          Needs claymod-bridge.
+        </p>
+        <label class="row" style="font-weight: 400">
+          <input id="agent-access" type="checkbox" style="width: auto" />
+          Let agents use Claymod (MCP)
+        </label>
+        <div id="agent-status" role="status" data-testid="agent-status" hidden></div>
+        <details class="card" id="agent-setup">
+          <summary>Add Claymod to your agent</summary>
+          <div class="stack small">
+            <p>Claude Code:</p>
+            <code>claude mcp add claymod -- claymod-bridge mcp</code>
+            <p>Codex (allow time for your approval):</p>
+            <code>codex mcp add claymod -- claymod-bridge mcp</code>
+            <span class="muted">Then set <code>tool_timeout_sec = 180</code> under <code>[mcp_servers.claymod]</code> in <code>~/.codex/config.toml</code>.</span>
+            <p>OpenCode (<code>opencode.json</code>):</p>
+            <code>{"mcp": {"servers": {"claymod": {"type": "local", "command": ["claymod-bridge", "mcp"]}}}}</code>
+          </div>
+        </details>
+      </section>
     </main>
     <script type="module" src="./main.ts"></script>
   </body>

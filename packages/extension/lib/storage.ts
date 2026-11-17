@@ -9,7 +9,17 @@ export const KEYS = {
   mods: "mods",
   modState: "modState",
   pausedSites: "pausedSites",
+  agentAccess: "agentAccess",
 } as const;
+
+/** M5: whether agents may use Claymod through `claymod-bridge mcp`. Off by default. */
+export async function getAgentAccess(): Promise<boolean> {
+  return (await browser.storage.local.get(KEYS.agentAccess))[KEYS.agentAccess] === true;
+}
+
+export async function setAgentAccess(enabled: boolean): Promise<void> {
+  await browser.storage.local.set({ [KEYS.agentAccess]: enabled });
+}
 
 /** Provider settings at rest: the API key is encrypted (see secret-box.ts), the rest is plain. */
 const storedProviderSchema = z.object({

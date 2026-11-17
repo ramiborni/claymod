@@ -11,6 +11,11 @@ export interface RpcMethods {
   bridgeHello: { req: Record<string, never>; res: HelloResult };
   bridgeSetKey: { req: { agent: AgentId; key: string }; res: null };
   bridgeDeleteKey: { req: { agent: AgentId }; res: null };
+  // M5: agents (MCP) ask; the user decides in the side panel.
+  agentAccess: { req: Record<string, never>; res: AgentLinkStatus };
+  setAgentAccess: { req: { enabled: boolean }; res: AgentLinkStatus };
+  agentRequests: { req: Record<string, never>; res: AgentRequestView[] };
+  agentDecision: { req: { requestId: string; outcome: AgentOutcome }; res: null };
   pick: { req: { tabId: number }; res: PickedElement | null };
   cancelPick: { req: { tabId: number }; res: null };
   generate: {
@@ -41,6 +46,31 @@ export interface RpcMethods {
     req: { tabId: number; modId: string; generated: GeneratedDraft; jsReviewed: boolean };
     res: { name: string; version: number };
   };
+}
+
+/** A preview or save an agent asked for, waiting in the side panel. */
+export interface AgentRequestView {
+  id: string;
+  tool: "preview_mod" | "save_mod";
+  /** The agent's self-reported name, e.g. "claude-code". */
+  client: string;
+  draft: ModDraft;
+  tabId: number;
+  /** save_mod with `replaces`: the new code becomes this mod's next version. */
+  replaces?: { id: string; name: string } | undefined;
+  createdAt: string;
+}
+
+export type AgentOutcome =
+  | { kind: "previewed" }
+  | { kind: "declined" }
+  | { kind: "discarded" }
+  | { kind: "saved"; id: string; name: string; version: number };
+
+export interface AgentLinkStatus {
+  enabled: boolean;
+  state: "off" | "connecting" | "connected" | "error";
+  error?: string | undefined;
 }
 
 export interface ModSummary {

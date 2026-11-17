@@ -59,7 +59,7 @@ function harness(spawn: Spawn, keys = memoryKeyStore()) {
         void responses.push(...decoder.push(bytes).map((f) => f.ok && f.message)),
       log: () => {},
     },
-    dispatch,
+    () => ({ dispatch }),
   );
   return {
     responses,

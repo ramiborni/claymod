@@ -12,11 +12,14 @@ import {
 import { KEYCHAIN_HELP } from "../keys";
 import { type AgentDeps, agentSearchPath, runAgent } from "../runners/run-agent";
 import type { AgentRunner } from "../runners/types";
+import type { AgentLink } from "./agent-link";
 
 export interface DispatchDeps {
   agents: AgentDeps;
   runners: Record<AgentId, AgentRunner>;
   version: string;
+  /** M5: the local socket agents reach through `claymod-bridge mcp`. */
+  link?: AgentLink | undefined;
 }
 
 export type Dispatch = (raw: unknown, hostSignal: AbortSignal) => Promise<BridgeResponse>;
@@ -114,6 +117,14 @@ export function createDispatcher(deps: DispatchDeps): Dispatch {
         return keyChange(request.id, () => deps.agents.keys.set(request.agent, request.key));
       case "deleteKey":
         return keyChange(request.id, () => deps.agents.keys.delete(request.agent));
+      case "serve": {
+        if (!deps.link) return failed(request.id, BAD_REQUEST);
+        const started = await deps.link.start();
+        return started.ok ? done(request.id, started.value) : failed(request.id, started.error);
+      }
+      case "agentResult":
+        deps.link?.resolve(request.callId, request.result);
+        return done(request.id, null);
     }
   };
 }

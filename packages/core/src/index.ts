@@ -16,6 +16,8 @@ export * from "./mod/versioning";
 export { buildCreatePrompt, type CreatePromptInput } from "./prompts/create";
 export { buildRepairPrompt, type RepairPromptInput } from "./prompts/repair";
 export { withRetryFeedback } from "./prompts/retry";
+export { renderSnapshot } from "./prompts/snapshot";
+export { MOD_RULES } from "./prompts/system";
 export type { ChatMessage, Prompt } from "./prompts/types";
 export * from "./providers/anthropic";
 export * from "./providers/config";

@@ -1,5 +1,6 @@
 import "@/lib/ui/theme.css";
 import { useJitlessZod } from "@claymod/core/zod-config";
+import { AGENT_REQUESTS_KEY } from "@/lib/agent-keys";
 import { createRpcClient } from "@/lib/rpc/client";
 import { KEYS } from "@/lib/storage";
 import { h } from "@/lib/ui/dom";
@@ -73,8 +74,14 @@ async function refreshProvider() {
   if (status.ok) ctx.update({ provider: status.value });
 }
 
+async function refreshAgentRequests() {
+  const requests = await rpc.call("agentRequests", {});
+  if (requests.ok) ctx.update({ agentRequests: requests.value });
+}
+
 document.getElementById("settings")?.addEventListener("click", create.openSettings);
 browser.storage.onChanged.addListener((changes, area) => {
+  if (area === "session" && AGENT_REQUESTS_KEY in changes) void refreshAgentRequests();
   if (area !== "local") return;
   if (KEYS.provider in changes) void refreshProvider();
   if (KEYS.mods in changes || KEYS.modState in changes || KEYS.pausedSites in changes)
@@ -85,3 +92,4 @@ browser.tabs.onActivated.addListener(() => void ctx.refreshMods());
 render();
 void refreshProvider();
 void ctx.refreshMods();
+void refreshAgentRequests();

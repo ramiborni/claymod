@@ -140,6 +140,7 @@ describe("doctor", () => {
     expect(report).toContain("✓ Codex: /bin/codex · signed in · API key saved");
     expect(report).toContain("– Antigravity CLI: 'agy' not found");
     expect(report).toContain("Cleared LANGSMITH_TRACING");
+    expect(report).toContain("– Agents (MCP): off");
     expect(report).not.toContain("sk-secret");
     expect(context.spawned.map((call) => call.command)).toContainEqual([
       "/bin/claude",

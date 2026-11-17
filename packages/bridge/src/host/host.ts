@@ -1,4 +1,4 @@
-import type { BridgeResponse } from "@claymod/core/bridge-protocol";
+import type { AgentCall, BridgeResponse } from "@claymod/core/bridge-protocol";
 import type { Dispatch } from "./dispatch";
 import { encodeFrame, FrameDecoder } from "./framing";
 
@@ -37,21 +37,37 @@ function frameFor(response: BridgeResponse): Uint8Array {
   return fallback.frame;
 }
 
+/** Messages the host sends on its own (not answers): agent calls for the extension. */
+export type Push = (message: AgentCall) => boolean;
+
+export interface HostSetup {
+  dispatch: Dispatch;
+  /** Runs once Chrome has closed the connection. */
+  close?(): Promise<void>;
+}
+
 /**
  * The native messaging host: reads framed requests from Chrome, answers each one as soon as it
  * is ready, and stops every running agent when Chrome closes the connection (stdin ends).
+ * `setup` receives `push`, for messages the host sends without being asked (M5 agent calls).
  */
-export async function runHost(io: HostIo, dispatch: Dispatch): Promise<void> {
+export async function runHost(io: HostIo, setup: (push: Push) => HostSetup): Promise<void> {
   const decoder = new FrameDecoder();
   const shutdown = new AbortController();
   const pending = new Set<Promise<void>>();
   let writes = Promise.resolve();
 
-  const send = (response: BridgeResponse) => {
-    const frame = frameFor(response);
+  const write = (frame: Uint8Array) => {
     writes = writes.then(() => io.write(frame)).catch((error) => io.log(`write failed: ${error}`));
     return writes;
   };
+  const send = (response: BridgeResponse) => write(frameFor(response));
+  const push: Push = (message) => {
+    const encoded = encodeFrame(message);
+    if (encoded.ok) void write(encoded.frame);
+    return encoded.ok;
+  };
+  const { dispatch, close } = setup(push);
 
   const handle = (message: unknown) => {
     const task = dispatch(message, shutdown.signal)
@@ -75,6 +91,7 @@ export async function runHost(io: HostIo, dispatch: Dispatch): Promise<void> {
     }
   } finally {
     shutdown.abort();
+    await close?.();
     await Promise.allSettled([...pending]);
     await writes;
   }

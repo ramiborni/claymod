@@ -1,7 +1,9 @@
 import { readConfig } from "../config";
 import type { Command } from "../context";
+import { createAgentLink } from "../host/agent-link";
 import { createDispatcher } from "../host/dispatch";
 import { runHost } from "../host/host";
+import { linkPaths } from "../mcp/link-paths";
 import { configDir } from "../paths";
 import { RUNNERS } from "../runners";
 
@@ -28,20 +30,31 @@ export const host: Command = async (args, context) => {
     );
     return 1;
   }
-  const dispatch = createDispatcher({
-    version: context.version,
-    runners: RUNNERS,
-    agents: {
-      spawn: context.spawn,
-      which: context.which,
-      keys: context.keys,
-      env: context.env,
+  const paths = linkPaths(context);
+  await runHost({ ...context.stdio, log: context.err }, (push) => {
+    const link = createAgentLink({
+      socket: paths.socket,
+      tokenFile: paths.token,
+      dir: paths.dir,
       platform: context.platform,
-      home: context.home,
-      savedPath: config?.path,
-      tmpRoot: context.tmpRoot,
-    },
+      push,
+    });
+    const dispatch = createDispatcher({
+      version: context.version,
+      runners: RUNNERS,
+      link,
+      agents: {
+        spawn: context.spawn,
+        which: context.which,
+        keys: context.keys,
+        env: context.env,
+        platform: context.platform,
+        home: context.home,
+        savedPath: config?.path,
+        tmpRoot: context.tmpRoot,
+      },
+    });
+    return { dispatch, close: () => link.close() };
   });
-  await runHost({ ...context.stdio, log: context.err }, dispatch);
   return 0;
 };

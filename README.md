@@ -10,6 +10,8 @@ fits the page, and helps you repair it when the site changes.
 - **Your model, your key.** OpenAI-compatible endpoints (Ollama, LM Studio, OpenRouter, OpenAI),
   the Anthropic API, or a local agent (Claude Code, Codex, Gemini CLI, Antigravity CLI) through
   the optional [bridge](docs/bridge.md).
+- **Works with your agent.** Claude Code, Codex or OpenCode can read the page and propose mods
+  over [MCP](docs/mcp.md); you approve every preview and save.
 - **Private by default.** Page snapshots go only to the provider you configure. No telemetry,
   no Claymod server.
 - **Safe by design.** Generated JS runs only in Chrome's isolated user-script world, only on the
