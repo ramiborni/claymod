@@ -54,8 +54,14 @@ export async function startMockServer(): Promise<MockServer> {
   const handle = async (request: IncomingMessage, response: ServerResponse) => {
     const url = new URL(request.url ?? "/", "http://127.0.0.1");
     if (request.method === "OPTIONS") return response.writeHead(204, CORS).end();
-    if (url.pathname.startsWith("/fixtures/")) {
-      const file = path.join(fixturesDir, path.basename(url.pathname));
+    // Every /spa/* path serves the single-page-app fixture, like a real SPA host.
+    const fixture = url.pathname.startsWith("/spa/")
+      ? "spa.html"
+      : url.pathname.startsWith("/fixtures/")
+        ? path.basename(url.pathname)
+        : undefined;
+    if (fixture) {
+      const file = path.join(fixturesDir, fixture);
       const html = await readFile(file, "utf8").catch(() => undefined);
       return html
         ? response.writeHead(200, { "content-type": "text/html" }).end(html)

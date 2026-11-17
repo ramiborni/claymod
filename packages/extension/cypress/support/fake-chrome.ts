@@ -85,7 +85,7 @@ export function installFakeChrome(win: Window, options: FakeChromeOptions = {}):
       },
       onChanged: { addListener: () => {} },
     },
-    tabs: { query: async () => [{ id: 7, windowId: 1 }] },
+    tabs: { query: async () => [{ id: 7, windowId: 1 }], onActivated: { addListener: () => {} } },
     permissions: {
       request: cy
         .stub()

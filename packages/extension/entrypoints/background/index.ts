@@ -1,6 +1,9 @@
 import { useJitlessZod } from "@claymod/core";
+import { isCheckReport, recordChecks } from "@/lib/background/checks";
 import { handlers } from "@/lib/background/handlers";
+import { syncRegistrations } from "@/lib/background/sync";
 import { serveRpc } from "@/lib/rpc/server";
+import { KEYS } from "@/lib/storage";
 
 export default defineBackground(() => {
   useJitlessZod();
@@ -11,4 +14,24 @@ export default defineBackground(() => {
     void browser.sidePanel.open({ windowId: tab.windowId });
   });
   serveRpc(handlers);
+
+  // Health reports from the apply content script (one per visit or SPA navigation).
+  browser.runtime.onMessage.addListener((message, sender) => {
+    const tabId = sender.tab?.id;
+    if (sender.id !== browser.runtime.id || tabId === undefined || !isCheckReport(message)) return;
+    void recordChecks(message, tabId);
+    void syncRegistrations(); // picks up user scripts being switched on; cheap when nothing changed
+  });
+
+  // Keep Chrome's registered scripts in step with stored mods, settings and permissions.
+  browser.storage.onChanged.addListener((changes, area) => {
+    if (area !== "local") return;
+    if (KEYS.mods in changes || KEYS.modState in changes || KEYS.pausedSites in changes)
+      void syncRegistrations();
+  });
+  browser.permissions.onAdded.addListener(() => void syncRegistrations(true));
+  browser.permissions.onRemoved.addListener(() => void syncRegistrations(true));
+  browser.runtime.onInstalled.addListener(() => void syncRegistrations(true));
+  browser.runtime.onStartup.addListener(() => void syncRegistrations(true));
+  void syncRegistrations(true);
 });

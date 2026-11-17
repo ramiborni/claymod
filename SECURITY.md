@@ -16,7 +16,7 @@ that code.
 
 | Asset | Threat | Mitigation |
 | --- | --- | --- |
-| Pages you visit | A generated or imported mod runs malicious JS | JS runs only via `chrome.userScripts` in the isolated `USER_SCRIPT` world, only on the mod's declared `matches`, and only after you preview it. Imported mods keep JS disabled until you view the code and enable it. |
+| Pages you visit | A generated or imported mod runs malicious JS | JS runs only via `chrome.userScripts` in the isolated `USER_SCRIPT` world, only on the mod's declared `matches`, and only after you have seen it (it ran in the preview, or you opened the code). Imported mods keep JS disabled until you view the code and enable it. A per-site switch pauses every mod, CSS and JS, on a site. |
 | Your browsing | The extension gets broad host access | No host access at install. The current page is read only after you click the Claymod icon (`activeTab`). Lasting access is requested per site when you keep a mod (`optional_host_permissions`). |
 | Extension pages | Code injection into the extension itself | No `eval`, no remote code: everything the extension runs ships in the package. Mod code is never executed in extension pages. Only Claymod's own pages can call the background; content scripts and web pages can't. |
 | Page content | Snapshots leak to third parties | Snapshots go only to the provider you configured. No telemetry, no Claymod server. |

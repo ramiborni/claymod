@@ -8,6 +8,8 @@ import type {
 } from "./protocol";
 import { RPC_PORT } from "./protocol";
 
+export type { ModSummary } from "./protocol";
+
 export type RpcHandlers = {
   [M in RpcMethod]: (
     payload: RpcRequest<M>,

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Claymod fixture: single-page app</title>
+    <!-- Synthetic page for tests. Never copy third-party HTML into fixtures. -->
+  </head>
+  <body>
+    <nav>
+      <a href="/spa/home" data-route>Home</a>
+      <a href="/spa/feed" data-route>Feed</a>
+    </nav>
+    <main id="view"></main>
+    <script>
+      // A tiny client-side router: pushState navigation without page loads.
+      const views = {
+        "/spa/home": '<h1>Home</h1><aside class="promoted">Home banner</aside>',
+        "/spa/feed": '<h1>Feed</h1><article class="post">Post</article><article class="post promoted">Sponsored post</article>',
+      };
+      function render() {
+        // Replace the view after a short delay, like a framework fetching data.
+        setTimeout(() => {
+          document.getElementById("view").innerHTML = views[location.pathname] ?? "<h1>Not found</h1>";
+        }, 50);
+      }
+      document.addEventListener("click", (event) => {
+        const link = event.target.closest("a[data-route]");
+        if (!link) return;
+        event.preventDefault();
+        history.pushState({}, "", link.getAttribute("href"));
+        render();
+      });
+      window.addEventListener("popstate", render);
+      render();
+    </script>
+  </body>
+</html>

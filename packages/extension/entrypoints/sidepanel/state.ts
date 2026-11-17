@@ -1,33 +1,65 @@
 import type { PickedElement } from "@claymod/core/snapshot";
-import type { GeneratedDraft, PreviewResult } from "@/lib/rpc/protocol";
+import type { GeneratedDraft, ManagerView, PreviewResult } from "@/lib/rpc/protocol";
+
+/** Create a new mod, or repair an existing one. Both end in the same preview. */
+export type Purpose = { kind: "create" } | { kind: "repair"; modId: string; modName: string };
+
+export interface PreviewScreen {
+  name: "preview";
+  purpose: Purpose;
+  tabId: number;
+  generated: GeneratedDraft;
+  preview: PreviewResult;
+  showCode: boolean;
+  /** The user has seen the JS: it ran in the preview or they opened the code. */
+  jsReviewed: boolean;
+  saving: boolean;
+}
 
 export type Screen =
   | { name: "compose" }
   | { name: "picking" }
-  | { name: "generating" }
-  | {
-      name: "preview";
-      tabId: number;
-      generated: GeneratedDraft;
-      preview: PreviewResult;
-      showCode: boolean;
-      keeping: boolean;
-    }
-  | { name: "saved"; modName: string }
-  | { name: "error"; message: string; back: "compose" | "preview" };
+  | { name: "generating"; label: string }
+  | PreviewScreen
+  | { name: "saved"; message: string }
+  | { name: "error"; message: string };
+
+export type Tab = "create" | "mods";
+export type Filter = "site" | "all";
+
+export interface ManagerUi {
+  view: ManagerView | null;
+  filter: Filter;
+  /** Mods whose code is expanded. Viewing the code is what unlocks "Enable JavaScript". */
+  expanded: Set<string>;
+  renaming: string | null;
+  confirmDelete: string | null;
+  notice: { kind: "ok" | "error"; text: string } | null;
+}
 
 export interface PanelState {
+  tab: Tab;
   screen: Screen;
   request: string;
   picked: PickedElement | null;
   provider: { configured: boolean; label: string };
-  /** Shown above the preview when Keep fails, so the preview stays usable. */
-  keepError?: string | undefined;
+  /** Shown above the preview when saving fails, so the preview stays usable. */
+  saveError?: string | undefined;
+  manager: ManagerUi;
 }
 
 export const initialState: PanelState = {
+  tab: "create",
   screen: { name: "compose" },
   request: "",
   picked: null,
   provider: { configured: false, label: "" },
+  manager: {
+    view: null,
+    filter: "site",
+    expanded: new Set(),
+    renaming: null,
+    confirmDelete: null,
+    notice: null,
+  },
 };

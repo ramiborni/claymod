@@ -56,8 +56,17 @@ validates that draft, then adds `schemaVersion`, `id`, `version`, `createdBy`, t
 
 ## Health
 
-On each visit the extension evaluates every check. If checks fail on 3 consecutive visits
-(by default), the mod is marked `needs-repair` and the user can ask the model to repair it.
+On each visit (and each single-page-app navigation) the extension evaluates every check once
+the page has settled. If checks fail on 3 consecutive visits (by default), the mod is marked
+`needs-repair` and the user can ask the model to repair it. Repairs and edits save a new
+`version` and keep the previous one in `history` (at most 5); Undo restores it.
+
+## Sharing
+
+Exports wrap mods as `{ "format": "claymod-mods", "formatVersion": 1, "exportedAt": "…",
+"mods": [ … ] }`. Only the mods are shared: whether a mod is enabled, its check results and
+paused sites stay local. Imported mods get new ids, and their JavaScript stays off until you
+read it and enable it.
 
 ## Writing good mods
 

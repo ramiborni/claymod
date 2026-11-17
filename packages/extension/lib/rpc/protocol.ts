@@ -14,7 +14,55 @@ export interface RpcMethods {
   };
   preview: { req: { tabId: number; draft: ModDraft }; res: PreviewResult };
   discard: { req: { tabId: number }; res: null };
-  keep: { req: { tabId: number; generated: GeneratedDraft }; res: { id: string; name: string } };
+  keep: {
+    req: { tabId: number; generated: GeneratedDraft; jsReviewed: boolean };
+    res: { id: string; name: string };
+  };
+  // Mod manager
+  listMods: { req: { tabId?: number | undefined }; res: ManagerView };
+  setEnabled: { req: { id: string; enabled: boolean }; res: null };
+  rename: { req: { id: string; name: string }; res: null };
+  deleteMod: { req: { id: string }; res: null };
+  undo: { req: { id: string }; res: null };
+  approveJs: { req: { id: string }; res: null };
+  setSitePaused: { req: { host: string; paused: boolean }; res: null };
+  exportMods: { req: { ids?: string[] | undefined }; res: { fileName: string; json: string } };
+  importMods: { req: { text: string }; res: { imported: string[]; errors: string[] } };
+  repair: {
+    req: { tabId: number; modId: string };
+    res: { generated: GeneratedDraft; preview: PreviewResult };
+  };
+  saveRepair: {
+    req: { tabId: number; modId: string; generated: GeneratedDraft; jsReviewed: boolean };
+    res: { name: string; version: number };
+  };
+}
+
+export interface ModSummary {
+  id: string;
+  name: string;
+  description: string;
+  matches: string[];
+  css?: string | undefined;
+  js?: string | undefined;
+  version: number;
+  canUndo: boolean;
+  enabled: boolean;
+  jsApproved: boolean;
+  health: "healthy" | "needs-repair";
+  /** Check selectors that failed on the last visit. */
+  lastFailed: string[];
+  /** Matches the page in the target tab. */
+  appliesHere: boolean;
+  /** Claymod has host permission for all of the mod's sites. */
+  hasAccess: boolean;
+}
+
+export interface ManagerView {
+  mods: ModSummary[];
+  /** The target tab's site, when Claymod can see it. */
+  site: { host: string; paused: boolean } | null;
+  userScripts: { available: boolean; help: string };
 }
 
 export type RpcMethod = keyof RpcMethods;

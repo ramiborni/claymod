@@ -11,7 +11,8 @@
     "./snapshot": "./src/snapshot/index.ts",
     "./zod-config": "./src/zod-config.ts",
     "./schema/mod.schema.json": "./schema/mod.schema.json",
-    "./schema/mod-draft.schema.json": "./schema/mod-draft.schema.json"
+    "./schema/mod-draft.schema.json": "./schema/mod-draft.schema.json",
+    "./health": "./src/health/index.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

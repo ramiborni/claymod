@@ -1,11 +1,15 @@
 import { testConnection } from "@claymod/core";
 import type { RpcHandlers } from "@/lib/rpc/server";
 import { getProviderConfig } from "@/lib/storage";
+import { approveJs, deleteMod, rename, setEnabled, setSitePaused, undo } from "./edit";
 import { generate } from "./generate";
 import { keep } from "./keep";
+import { listMods } from "./list";
 import { askPage } from "./page-access";
 import { discard, preview } from "./preview";
 import { providerFor, providerLabel } from "./provider";
+import { repair, saveRepair } from "./repair";
+import { exportMods, importMods } from "./transfer";
 
 export const handlers: RpcHandlers = {
   async status() {
@@ -28,4 +32,15 @@ export const handlers: RpcHandlers = {
   preview,
   discard,
   keep,
+  listMods,
+  setEnabled,
+  rename,
+  deleteMod,
+  undo,
+  approveJs,
+  setSitePaused,
+  exportMods,
+  importMods,
+  repair,
+  saveRepair,
 };

@@ -40,7 +40,7 @@ and the evaluator, with no network access.
 **Done when:** an e2e test on a fixture page creates a mod with a mocked provider, previews it,
 keeps it, and finds it in storage.
 
-## M3 — Apply, health, manage, share
+## M3 — Apply, health, manage, share ✅
 
 - CSS injected at `document_start`; JS registered with `chrome.userScripts` and synced with
   storage; clear instructions when user scripts are switched off.

@@ -1,22 +1,22 @@
 import { isBroadPattern } from "@/lib/origins";
 import { h } from "@/lib/ui/dom";
-import type { PanelState, Screen } from "./state";
+import type { PanelState, PreviewScreen } from "./state";
 
-export interface Actions {
+export interface CreateActions {
   setRequest(value: string): void;
   pick(): void;
   cancelPick(): void;
   clearPicked(): void;
   generate(): void;
   cancelGenerate(): void;
-  keep(): void;
+  save(): void;
   discard(): void;
   toggleCode(): void;
   backToCompose(): void;
   openSettings(): void;
 }
 
-function compose(state: PanelState, actions: Actions): Node {
+function compose(state: PanelState, actions: CreateActions): Node {
   const canGenerate = state.provider.configured && state.request.trim().length > 0;
   return h(
     "div",
@@ -64,28 +64,46 @@ function compose(state: PanelState, actions: Actions): Node {
       { class: "row" },
       h(
         "button",
-        { class: "primary", disabled: !canGenerate, onclick: actions.generate },
+        { class: "primary", id: "generate", disabled: !canGenerate, onclick: actions.generate },
         "Generate",
       ),
     ),
   );
 }
 
-function preview(
-  screen: Extract<Screen, { name: "preview" }>,
-  state: PanelState,
-  actions: Actions,
-): Node {
+export function codeView(css: string | undefined, js: string | undefined): Node {
+  return h(
+    "div",
+    { class: "stack", "data-testid": "code" },
+    css && h("div", {}, h("p", { class: "muted" }, "CSS"), h("pre", {}, css)),
+    js &&
+      h(
+        "div",
+        {},
+        h("p", { class: "muted" }, "JavaScript (runs in an isolated user-script world)"),
+        h("pre", {}, js),
+      ),
+  );
+}
+
+function preview(screen: PreviewScreen, state: PanelState, actions: CreateActions): Node {
   const { draft } = screen.generated;
-  const broad = draft.matches.some(isBroadPattern);
+  const repairing = screen.purpose.kind === "repair";
+  const saveLabel = repairing ? "Save repair" : "Keep";
   return h(
     "div",
     { class: "card", "data-testid": "preview" },
+    repairing &&
+      h(
+        "p",
+        { class: "muted" },
+        `Repaired version of “${screen.purpose.kind === "repair" ? screen.purpose.modName : ""}”`,
+      ),
     h("h2", {}, draft.name),
     h("p", {}, draft.description),
     h("p", { class: "muted" }, "Previewing on this tab only. Runs on:"),
     h("ul", {}, ...draft.matches.map((pattern) => h("li", {}, h("code", {}, pattern)))),
-    broad &&
+    draft.matches.some(isBroadPattern) &&
       h(
         "div",
         { class: "notice warn" },
@@ -103,16 +121,16 @@ function preview(
         { class: "notice warn" },
         `This mod includes JavaScript, which wasn't previewed. ${screen.preview.jsHelp ?? ""}`,
       ),
-    state.keepError && h("div", { class: "notice error", role: "alert" }, state.keepError),
+    state.saveError && h("div", { class: "notice error", role: "alert" }, state.saveError),
     h(
       "div",
       { class: "row" },
       h(
         "button",
-        { class: "primary", disabled: screen.keeping, onclick: actions.keep },
-        screen.keeping ? "Keeping…" : "Keep",
+        { class: "primary", disabled: screen.saving, onclick: actions.save },
+        screen.saving ? "Saving…" : saveLabel,
       ),
-      h("button", { disabled: screen.keeping, onclick: actions.discard }, "Discard"),
+      h("button", { disabled: screen.saving, onclick: actions.discard }, "Discard"),
       h(
         "button",
         { class: "link", "aria-expanded": String(screen.showCode), onclick: actions.toggleCode },
@@ -120,21 +138,6 @@ function preview(
       ),
     ),
     screen.showCode && codeView(draft.css, draft.js),
-  );
-}
-
-function codeView(css: string | undefined, js: string | undefined): Node {
-  return h(
-    "div",
-    { class: "stack", "data-testid": "code" },
-    css && h("div", {}, h("p", { class: "muted" }, "CSS"), h("pre", {}, css)),
-    js &&
-      h(
-        "div",
-        {},
-        h("p", { class: "muted" }, "JavaScript (runs in an isolated user-script world)"),
-        h("pre", {}, js),
-      ),
   );
 }
 
@@ -152,7 +155,7 @@ function busy(text: string, cancel: () => void): Node {
   );
 }
 
-export function renderScreen(state: PanelState, actions: Actions): Node {
+export function renderCreate(state: PanelState, actions: CreateActions): Node {
   const screen = state.screen;
   switch (screen.name) {
     case "compose":
@@ -160,14 +163,14 @@ export function renderScreen(state: PanelState, actions: Actions): Node {
     case "picking":
       return busy("Click an element on the page. Press Esc to cancel.", actions.cancelPick);
     case "generating":
-      return busy("Writing your mod…", actions.cancelGenerate);
+      return busy(screen.label, actions.cancelGenerate);
     case "preview":
       return preview(screen, state, actions);
     case "saved":
       return h(
         "div",
         { class: "stack" },
-        h("div", { class: "notice ok", role: "status" }, `Saved “${screen.modName}”.`),
+        h("div", { class: "notice ok", role: "status" }, screen.message),
         h(
           "div",
           { class: "row" },

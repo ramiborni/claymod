@@ -75,3 +75,74 @@ export async function storedMods(worker: Worker): Promise<Record<string, Record<
   const stored = await worker.evaluate(() => chrome.storage.local.get("mods"));
   return (stored.mods ?? {}) as Record<string, Record<string, unknown>>;
 }
+
+export interface SeedMod {
+  id: string;
+  name: string;
+  matches: string[];
+  css?: string;
+  js?: string;
+  runAt?: "document_start" | "document_end" | "document_idle";
+  checks: Array<{ selector: string; expect: "exists" }>;
+}
+
+/** Stores mods as if the user had kept them, then waits until Claymod registered its scripts. */
+export async function seedMods(
+  worker: Worker,
+  mods: SeedMod[],
+  options: { jsApproved?: boolean } = {},
+): Promise<void> {
+  const now = new Date().toISOString();
+  const full = mods.map((mod) => ({
+    schemaVersion: 1,
+    description: `Test mod: ${mod.name}`,
+    runAt: "document_start",
+    version: 1,
+    createdBy: { provider: "test", model: "seed" },
+    createdAt: now,
+    updatedAt: now,
+    history: [],
+    ...mod,
+  }));
+  await worker.evaluate(
+    async ({ full, jsApproved }) => {
+      await chrome.storage.local.set({
+        mods: Object.fromEntries(full.map((mod) => [mod.id, mod])),
+        modState: Object.fromEntries(
+          full.map((mod) => [
+            mod.id,
+            { enabled: true, jsApproved, checkRuns: [], health: "healthy" },
+          ]),
+        ),
+      });
+    },
+    { full, jsApproved: options.jsApproved ?? true },
+  );
+  await expect
+    .poll(() =>
+      worker.evaluate(async () => (await chrome.scripting.getRegisteredContentScripts()).length),
+    )
+    .toBe(1);
+}
+
+export async function modState(
+  worker: Worker,
+  id: string,
+): Promise<Record<string, unknown> | undefined> {
+  const stored = await worker.evaluate(() => chrome.storage.local.get("modState"));
+  return (stored.modState as Record<string, Record<string, unknown>> | undefined)?.[id];
+}
+
+/**
+ * Turns on "Allow User Scripts" for Claymod in chrome://extensions, as a user would. Off by
+ * default, which is why JS previews and JS mods explain how to enable it.
+ */
+export async function enableUserScripts(
+  context: BrowserContext,
+  extensionId: string,
+): Promise<void> {
+  const page = await context.newPage();
+  await page.goto(`chrome://extensions/?id=${extensionId}`);
+  await page.locator("#allow-user-scripts").click();
+  await page.close();
+}
