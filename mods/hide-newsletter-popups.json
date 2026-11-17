@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "fada1432-26df-53cd-8bf7-e78acd0eea60",
+  "name": "Hide newsletter pop-ups",
+  "description": "Hides newsletter sign-up dialogs and pop-ups; newsletter links in the page stay.",
+  "matches": ["*://*/*"],
+  "css": "[role=\"dialog\"][id*=\"newsletter\" i],\n[role=\"dialog\"][class*=\"newsletter\" i],\n[class*=\"newsletter-popup\" i],\n[class*=\"newsletter-modal\" i] {\n  display: none !important;\n}",
+  "runAt": "document_start",
+  "checks": [
+    {
+      "selector": "body",
+      "expect": "exists"
+    }
+  ],
+  "version": 1,
+  "createdBy": {
+    "provider": "claymod",
+    "model": "starter"
+  },
+  "createdAt": "2026-11-17T00:00:00.000Z",
+  "updatedAt": "2026-11-17T00:00:00.000Z",
+  "history": []
+}

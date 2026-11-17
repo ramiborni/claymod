@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "1c1e5493-e4c7-5f04-99c2-3cfc2759f118",
+  "name": "Hide share bars",
+  "description": "Hides floating and inline social share buttons.",
+  "matches": ["*://*/*"],
+  "css": "[class*=\"share-bar\" i],\n[class*=\"sharebar\" i],\n[class*=\"social-share\" i],\n[class*=\"share-buttons\" i] {\n  display: none !important;\n}",
+  "runAt": "document_start",
+  "checks": [
+    {
+      "selector": "body",
+      "expect": "exists"
+    }
+  ],
+  "version": 1,
+  "createdBy": {
+    "provider": "claymod",
+    "model": "starter"
+  },
+  "createdAt": "2026-11-17T00:00:00.000Z",
+  "updatedAt": "2026-11-17T00:00:00.000Z",
+  "history": []
+}

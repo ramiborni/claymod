@@ -36,11 +36,13 @@ Pick one of these. Both are self-contained and reviewed quickly.
 
 ### Option A: add a starter mod
 
-1. Create `mods/<site>-<what-it-does>.json` following the [mod format](docs/mod-format.md).
+1. Create `mods/<what-it-does>.json` following the [mod format](docs/mod-format.md).
    Use match patterns as narrow as the change allows, and at least one check selector.
-2. Add a **synthetic** fixture page to `packages/extension/tests/fixtures/` that has the same
-   structure your selectors rely on. Write it by hand: never copy a real site's HTML.
-3. Add a test showing the mod applies to the fixture.
+2. Extend the **synthetic** fixture page `packages/extension/tests/fixtures/starter.html` (or add
+   your own) with the structure your selectors rely on. Write it by hand: never copy a real
+   site's HTML.
+3. Add a test to `packages/extension/tests/e2e/starter-mods.e2e.ts` showing the mod makes its
+   change on the fixture (`mods/mods.test.ts` fails until you do).
 4. Run `bun run check && bun test`, add a changeset (`bunx changeset`), open a PR.
 
 ### Option B: add a model provider

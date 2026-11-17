@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "26451702-5a1a-5129-a9f3-bffbeb574d82",
+  "name": "Always-visible keyboard focus",
+  "description": "Draws a clear outline around whatever has keyboard focus, even on sites that hide it.",
+  "matches": ["*://*/*"],
+  "css": ":focus-visible {\n  outline: 3px solid #1b6c80 !important;\n  outline-offset: 2px !important;\n}",
+  "runAt": "document_start",
+  "checks": [
+    {
+      "selector": "body",
+      "expect": "exists"
+    }
+  ],
+  "version": 1,
+  "createdBy": {
+    "provider": "claymod",
+    "model": "starter"
+  },
+  "createdAt": "2026-11-17T00:00:00.000Z",
+  "updatedAt": "2026-11-17T00:00:00.000Z",
+  "history": []
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "aecae607-e3a9-5eb3-8141-b8656290afe2",
+  "name": "Hide cookie banners",
+  "description": "Hides the consent banners of common cookie tools (OneTrust, Cookiebot, Osano, Funding Choices, Sourcepoint) and generic cookie notices.",
+  "matches": ["*://*/*"],
+  "css": "#onetrust-banner-sdk,\n#onetrust-consent-sdk,\n#CybotCookiebotDialog,\n.cc-window,\n.fc-consent-root,\n[id^=\"sp_message_container\"],\n#cookie-banner,\n#cookie-notice,\n.cookie-banner,\n.cookie-notice {\n  display: none !important;\n}",
+  "runAt": "document_start",
+  "checks": [
+    {
+      "selector": "body",
+      "expect": "exists"
+    }
+  ],
+  "version": 1,
+  "createdBy": {
+    "provider": "claymod",
+    "model": "starter"
+  },
+  "createdAt": "2026-11-17T00:00:00.000Z",
+  "updatedAt": "2026-11-17T00:00:00.000Z",
+  "history": []
+}

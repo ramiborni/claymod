@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "2a832454-c9e9-579f-ab86-cbccb40905de",
+  "name": "Larger article text",
+  "description": "Makes article text 12.5% larger with a little more line spacing.",
+  "matches": ["*://*/*"],
+  "css": "main,\narticle:not(main article) {\n  font-size: 112.5% !important;\n  line-height: 1.6 !important;\n}",
+  "runAt": "document_start",
+  "checks": [
+    {
+      "selector": "body",
+      "expect": "exists"
+    }
+  ],
+  "version": 1,
+  "createdBy": {
+    "provider": "claymod",
+    "model": "starter"
+  },
+  "createdAt": "2026-11-17T00:00:00.000Z",
+  "updatedAt": "2026-11-17T00:00:00.000Z",
+  "history": []
+}

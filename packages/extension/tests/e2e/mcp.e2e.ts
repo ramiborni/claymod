@@ -24,6 +24,8 @@ async function approve(panel: Page, button: "Keep" | null) {
 }
 
 test.skip(process.platform === "win32", "The bridge fixtures use shell scripts.");
+// Several real processes (Chromium, the bridge host, one MCP server per call) under a full suite.
+test.describe.configure({ timeout: 60_000 });
 
 test("an agent reads the page, previews and saves a mod the user approves", async ({
   context,

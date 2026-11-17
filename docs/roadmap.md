@@ -100,14 +100,19 @@ the manual check in on-device.md; e2e covers the real service worker and setting
 - Three review rounds on screenshots fixed wrapping buttons, overflowing chips, contradictory
   empty states and Chrome's 75% body font on extension pages.
 
-## M8 — Starter mods and releases
+## M8 — Starter mods and releases ✅
 
-- Ten starter mods tested on synthetic fixtures.
-- `release.yml`: Changesets version PR → tag → extension zip + bridge binaries → GitHub Release
-  with checksums and provenance attestations. Manual Chrome Web Store upload documented.
+- Ten site-independent starter mods in `mods/`, validated in CI and each tested on a synthetic
+  fixture page (one test caught a compounding font size, now fixed).
+- `release.yml`: Changesets version PR → merge → check and tests → `release:artifacts`
+  (extension zip, four bridge binaries, `SHA256SUMS`) → build provenance attestations → GitHub
+  Release. "Run workflow" is a dry run. Chrome Web Store upload documented in
+  [releasing.md](releasing.md). Extension icons.
 - Final README.
 
-**Done when:** a dry-run release on a fork produces all artifacts.
+**Done when:** a dry-run release on a fork produces all artifacts. The local dry run
+(`bun run release:artifacts`) produces and verifies them; the GitHub run needs the repository's
+Actions (see releasing.md).
 
 ## Out of scope for the MVP
 

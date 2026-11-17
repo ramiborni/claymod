@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "2b2096c4-a24e-57a1-a674-9d9933d2df32",
+  "name": "Comfortable reading width",
+  "description": "Keeps article paragraphs and lists to about 72 characters per line, which is easier to read on wide screens.",
+  "matches": ["*://*/*"],
+  "css": "article p,\narticle li,\nmain p,\nmain li {\n  max-width: 72ch !important;\n}",
+  "runAt": "document_start",
+  "checks": [
+    {
+      "selector": "body",
+      "expect": "exists"
+    }
+  ],
+  "version": 1,
+  "createdBy": {
+    "provider": "claymod",
+    "model": "starter"
+  },
+  "createdAt": "2026-11-17T00:00:00.000Z",
+  "updatedAt": "2026-11-17T00:00:00.000Z",
+  "history": []
+}

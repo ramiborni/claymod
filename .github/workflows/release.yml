@@ -1,0 +1,141 @@
+name: Release
+
+# 1. On main, Changesets opens (or updates) a "chore: version packages" PR from the pending
+#    changesets.
+# 2. Merging that PR bumps the versions; the next run finds no changesets, builds every artifact
+#    (scripts/release-artifacts.ts), attests their provenance and publishes a GitHub Release
+#    tagged v<extension version> with SHA256SUMS.
+# Run it by hand ("Run workflow") for a dry run: same build and attestations, uploaded as a
+# workflow artifact, no tag and no release.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Build and attest the artifacts without publishing a release
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  version:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      has-changesets: ${{ steps.changesets.outputs.has-changesets }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - run: bun install --frozen-lockfile
+
+      - name: Open or update the version PR
+        id: changesets
+        uses: changesets/action@v2
+        with:
+          version-script: bun run changeset version
+          commit-message: "chore: version packages"
+          pr-title: "chore: version packages"
+
+  release:
+    needs: version
+    # Runs after a version PR was merged (no changesets left), or by hand.
+    if: >-
+      always() &&
+      (github.event_name == 'workflow_dispatch' ||
+       (needs.version.result == 'success' && needs.version.outputs.has-changesets == 'false'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Version
+        id: version
+        run: |
+          version=$(jq -r .version packages/extension/package.json)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null; then
+            echo "released=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "released=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Decide
+        id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          RELEASED: ${{ steps.version.outputs.released }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+            if [ "$DRY_RUN" = "false" ] && [ "$RELEASED" = "false" ]; then publish=true; else publish=false; fi
+            echo "publish=$publish" >> "$GITHUB_OUTPUT"
+          elif [ "$RELEASED" = "false" ]; then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "v${{ steps.version.outputs.version }} is already released; nothing to do."
+            echo "build=false" >> "$GITHUB_OUTPUT"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.plan.outputs.build == 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Check and unit tests
+        if: steps.plan.outputs.build == 'true'
+        run: bun run check && bun test
+
+      - name: Build the artifacts
+        if: steps.plan.outputs.build == 'true'
+        run: bun run release:artifacts
+
+      - name: Attest build provenance
+        if: steps.plan.outputs.build == 'true'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: dist/release/*
+
+      - name: Upload the artifacts
+        if: steps.plan.outputs.build == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: claymod-${{ steps.version.outputs.version }}
+          path: |
+            dist/release
+            dist/release-notes.md
+          if-no-files-found: error
+
+      - name: Publish the GitHub release
+        if: steps.plan.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "v$VERSION" dist/release/* \
+            --target "$GITHUB_SHA" \
+            --title "Claymod $VERSION" \
+            --notes-file dist/release-notes.md

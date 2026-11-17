@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "732aaea9-09d1-5a9a-9ac9-ee53adeb56fe",
+  "name": "Reduce motion",
+  "description": "Stops animations and transitions and turns off smooth scrolling.",
+  "matches": ["*://*/*"],
+  "css": "*,\n*::before,\n*::after {\n  animation-duration: 0.01ms !important;\n  animation-iteration-count: 1 !important;\n  transition-duration: 0.01ms !important;\n  scroll-behavior: auto !important;\n}",
+  "runAt": "document_start",
+  "checks": [
+    {
+      "selector": "body",
+      "expect": "exists"
+    }
+  ],
+  "version": 1,
+  "createdBy": {
+    "provider": "claymod",
+    "model": "starter"
+  },
+  "createdAt": "2026-11-17T00:00:00.000Z",
+  "updatedAt": "2026-11-17T00:00:00.000Z",
+  "history": []
+}

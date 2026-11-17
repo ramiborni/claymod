@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Claymod fixture: starter mods</title>
+    <style>
+      body { font: 16px/1.4 system-ui, sans-serif; margin: 0; }
+      article p, article li { max-width: none; }
+      a { text-decoration: none; color: #0645ad; }
+      button:focus-visible { outline: none; }
+      .spinner { width: 20px; height: 20px; animation: spin 2s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .cookie-banner, #onetrust-banner-sdk, .cc-window { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px; background: #222; color: #fff; }
+      .newsletter-popup { position: fixed; inset: 20%; background: #fff; border: 1px solid #999; }
+      .share-bar { position: fixed; left: 0; top: 40%; }
+    </style>
+  </head>
+  <body>
+    <header id="masthead"><a href="#home">Fixture News</a></header>
+    <main>
+      <article class="story">
+        <h1>Synthetic article for starter mods</h1>
+        <p class="lead">This paragraph has <a href="#a">the reading guide</a> inside it and enough words to wrap across a wide screen so the reading width mod has something to do.</p>
+        <ul>
+          <li>A list item with <a href="#b">another link</a>.</li>
+        </ul>
+        <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="Pixel" width="10" height="10" />
+        <video id="autoplay-video" autoplay muted loop width="10" height="10"></video>
+        <div class="spinner" aria-hidden="true"></div>
+        <button type="button" id="focus-me">Focusable button</button>
+      </article>
+      <div class="share-bar"><a href="#share">Share</a></div>
+    </main>
+    <footer><a href="#newsletter" class="newsletter-link">Get the newsletter</a></footer>
+    <div id="onetrust-banner-sdk">We use cookies (OneTrust-style).</div>
+    <div class="cc-window">We use cookies (Osano-style).</div>
+    <div class="cookie-banner">We use cookies (generic).</div>
+    <div role="dialog" class="newsletter-popup" aria-label="Newsletter">Sign up for our newsletter</div>
+  </body>
+</html>

@@ -3,5 +3,5 @@
   "compilerOptions": {
     "types": ["bun"]
   },
-  "include": ["test-setup.ts"]
+  "include": ["test-setup.ts", "mods/*.ts", "scripts/*.ts"]
 }

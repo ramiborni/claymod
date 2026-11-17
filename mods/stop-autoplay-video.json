@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "b93a9677-4dc5-58f5-a741-8c7b9a23a8d2",
+  "name": "Stop autoplaying videos",
+  "description": "Pauses videos that start on their own and stops new ones from autoplaying. You can still press play.",
+  "matches": ["*://*/*"],
+  "js": "const stop = (video) => {\n  if (video.dataset.claymodStopped) return;\n  video.dataset.claymodStopped = \"1\";\n  video.autoplay = false;\n  video.removeAttribute(\"autoplay\");\n  video.pause();\n};\ndocument.querySelectorAll(\"video[autoplay]\").forEach(stop);\nnew MutationObserver(() => {\n  document.querySelectorAll(\"video[autoplay]\").forEach(stop);\n}).observe(document.documentElement, { childList: true, subtree: true });",
+  "runAt": "document_end",
+  "checks": [
+    {
+      "selector": "body",
+      "expect": "exists"
+    }
+  ],
+  "version": 1,
+  "createdBy": {
+    "provider": "claymod",
+    "model": "starter"
+  },
+  "createdAt": "2026-11-17T00:00:00.000Z",
+  "updatedAt": "2026-11-17T00:00:00.000Z",
+  "history": []
+}

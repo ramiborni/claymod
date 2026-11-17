@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "f8055a5a-423c-59f8-9814-b0288c520b7d",
+  "name": "Underline links in text",
+  "description": "Underlines links inside paragraphs and lists so they don't rely on colour alone.",
+  "matches": ["*://*/*"],
+  "css": "p a,\nli a {\n  text-decoration: underline !important;\n  text-underline-offset: 0.15em !important;\n}",
+  "runAt": "document_start",
+  "checks": [
+    {
+      "selector": "body",
+      "expect": "exists"
+    }
+  ],
+  "version": 1,
+  "createdBy": {
+    "provider": "claymod",
+    "model": "starter"
+  },
+  "createdAt": "2026-11-17T00:00:00.000Z",
+  "updatedAt": "2026-11-17T00:00:00.000Z",
+  "history": []
+}

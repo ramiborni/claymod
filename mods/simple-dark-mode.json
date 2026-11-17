@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "85f7fe29-9729-54f1-815e-8eafa8407224",
+  "name": "Simple dark mode",
+  "description": "Inverts the page's colours for a quick dark mode, keeping photos and videos as they are.",
+  "matches": ["*://*/*"],
+  "css": "html {\n  filter: invert(1) hue-rotate(180deg) !important;\n  background: #ffffff !important;\n}\nimg,\npicture,\nvideo,\ncanvas,\niframe {\n  filter: invert(1) hue-rotate(180deg) !important;\n}",
+  "runAt": "document_start",
+  "checks": [
+    {
+      "selector": "body",
+      "expect": "exists"
+    }
+  ],
+  "version": 1,
+  "createdBy": {
+    "provider": "claymod",
+    "model": "starter"
+  },
+  "createdAt": "2026-11-17T00:00:00.000Z",
+  "updatedAt": "2026-11-17T00:00:00.000Z",
+  "history": []
+}
