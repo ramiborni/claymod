@@ -10,6 +10,8 @@ export interface MockModel {
   status: number;
   /** Raw message content for a 200 answer, or the error body. */
   content: string;
+  /** Wait before answering, to show loading states. */
+  delayMs?: number;
 }
 
 export interface MockServer {
@@ -61,7 +63,8 @@ export async function startMockServer(): Promise<MockServer> {
     }
     if (url.pathname === "/v1/chat/completions" && request.method === "POST") {
       state.requests.push(JSON.parse(await readBody(request)));
-      const { status, content } = state.model;
+      const { status, content, delayMs = 0 } = state.model;
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
       const body = status === 200 ? completion(content) : JSON.parse(content);
       return response
         .writeHead(status, { ...CORS, "content-type": "application/json" })

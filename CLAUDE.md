@@ -100,6 +100,8 @@ Defined in `packages/core/src/mod/schema.ts` (Zod). Do not change it without ask
 - `core`: `bun test`, no network. Providers are tested with recorded responses.
 - `extension`: Playwright loading the built extension against **synthetic** fixture pages in
   `packages/extension/tests/fixtures/`. Never copy third-party site HTML; never hit live sites in CI.
+  Cypress tests the UI pages (side panel, options) as plain web pages with a fake extension API
+  (`packages/extension/cypress/`), covering every UI state quickly and deterministically.
 - `bridge`: unit tests for native messaging framing and runners (process spawning mocked).
 - Every bug fix comes with a test that fails before the fix.
 
@@ -110,7 +112,8 @@ bun install            # install everything
 bun dev                # extension dev mode (WXT) in Chrome
 bun run check          # biome + tsc across all packages
 bun test               # unit tests
-bun run e2e            # Playwright end-to-end tests
+bun run e2e            # Playwright end-to-end tests (real extension)
+bun run cypress        # Cypress UI tests (side panel, options) with a fake extension API
 bun run build          # build all packages
 bun run bridge:compile # single-file bridge binaries
 bunx changeset         # describe a user-visible change

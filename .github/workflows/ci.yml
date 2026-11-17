@@ -41,3 +41,20 @@ jobs:
 
       - name: End-to-end tests
         run: bun run e2e
+
+      - name: Install Cypress binary
+        working-directory: packages/extension
+        run: bunx cypress install
+
+      - name: UI tests (Cypress)
+        run: bun run cypress
+        env:
+          CYPRESS_BROWSER: chrome
+
+      - name: Upload Cypress failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cypress-screenshots
+          path: packages/extension/cypress/screenshots
+          if-no-files-found: ignore

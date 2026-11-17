@@ -25,6 +25,8 @@ export const test = base.extend<Fixtures>({
     const context = await chromium.launchPersistentContext("", {
       // The "chromium" channel runs extensions in new headless mode.
       channel: "chromium",
+      // Sharper images when capturing screenshots for people (bun run screenshots).
+      deviceScaleFactor: process.env.SCREENSHOTS_DIR ? 2 : 1,
       args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
     });
     await use(context);

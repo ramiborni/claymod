@@ -12,7 +12,8 @@
     "e2e": "bun --filter @claymod/extension e2e",
     "build": "bun --filter '*' build",
     "bridge:compile": "bun --filter @claymod/bridge compile",
-    "changeset": "changeset"
+    "changeset": "changeset",
+    "cypress": "bun --filter @claymod/extension cypress"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.8",

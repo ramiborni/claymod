@@ -16,6 +16,8 @@
     "lib",
     "tests",
     "wxt.config.ts",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "scripts",
+    "cypress.config.ts"
   ]
 }

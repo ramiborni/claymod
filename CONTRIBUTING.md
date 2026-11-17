@@ -20,12 +20,15 @@ That installs everything, lints, type-checks and runs the unit tests. Other comm
 | `bun run check:fix` | Applies Biome's safe fixes and formatting |
 | `bun test` | Unit tests (no network) |
 | `bun run e2e` | Builds the extension and runs Playwright tests against synthetic fixture pages |
+| `bun run cypress` | Builds the extension and runs Cypress UI tests for the side panel and options page (`bun run --cwd packages/extension cypress:open` for the interactive runner) |
+| `SCREENSHOTS_DIR=… bun run --cwd packages/extension screenshots` | Captures the UI in light and dark mode |
 | `bun run build` | Builds every package |
 | `bun run bridge:compile` | Compiles the bridge into a single binary |
 | `bunx changeset` | Describes a user-visible change for the changelog |
 
 The first time you run `bun run e2e` locally, install the browser with
-`cd packages/extension && bunx playwright install chromium`.
+`cd packages/extension && bunx playwright install chromium`. Cypress downloads its binary on
+`bun install`; if it didn't, run `cd packages/extension && bunx cypress install`.
 
 ## Your first PR in 15 minutes
 

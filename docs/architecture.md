@@ -111,5 +111,6 @@ Local agents plug in through the `AgentRunner` interface.
 | Package | How |
 | --- | --- |
 | core | `bun test`, no network; providers tested with recorded responses |
+| extension (UI) | Cypress loads the built side panel and options pages over http with a fake `chrome` API (`cypress/support/fake-chrome.ts`) and scripted background answers, so every UI state (loading, errors, permission refused, …) is tested without a browser extension |
 | extension | `bun test` for pure helpers; Playwright loads the `e2e` build (`.output/chrome-mv3-e2e`) against synthetic fixture pages served by a local mock server that is also a fake OpenAI-compatible model. The `e2e` build mode only adds `host_permissions: http://127.0.0.1/*`, because Playwright can't click the toolbar icon or answer permission prompts |
 | bridge | Unit tests for framing and runners, with process spawning mocked |
